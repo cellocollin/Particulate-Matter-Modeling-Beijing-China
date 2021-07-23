@@ -1,6 +1,6 @@
 ---
-title: "Regression to the Mean"
-author: "Jennings Cheng, Zhengtao Xu, Collin Carmichael"
+title: "Untitled"
+author: "Lelys"
 date: "7/9/2021"
 output: html_document
 ---
@@ -11,6 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r import package, include = FALSE, warning = FALSE, message = FALSE}
 #load libraries
+library("tidyverse")
+library("lubridate")
+library("ggplot2")
+library(dplyr)
 
 ```
 
