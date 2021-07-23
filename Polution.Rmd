@@ -1,0 +1,76 @@
+---
+title: "Untitled"
+author: "Lelys"
+date: "7/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r import package, include = FALSE, warning = FALSE, message = FALSE}
+#load libraries
+
+```
+
+
+```{r}
+#Read and check data
+Pollution<-read.csv("Final Project Data.csv",header=TRUE)
+head(Pollution)
+names(Pollution)
+summary(Pollution)
+# Change TEMP and PRES as numeric
+Pollution$TEMP<-as.numeric(Pollution$TEMP)
+Pollution$PRES<-as.numeric(Pollution$PRES)
+summary(Pollution)
+#Create date-time column for hourly data
+Pollution$Date_H=with(Pollution, ymd_h(paste(Year, Month, Day, Hour, sep= ' ')))
+#Create date column for daily data
+Pollution$Date_D=with(Pollution, ymd(paste(Year, Month, Day)))
+Pollution[1:5,]
+#Hourly Plots
+Pollution %>% 
+  ggplot(aes(Date_H,PM2.5))+ geom_line()
+# Build Daily data
+Pollution_Daily<-Pollution %>%
+  group_by(Date_D) %>%
+  summarise(
+  Avg_Day_PM2.5=mean(PM2.5,na.rm=TRUE),
+  Avg_Day_DEWP=mean(DEWP,na.rm=TRUE),
+  Avg_Day_TEMP=mean(TEMP,na.rm=TRUE),
+  Avg_Day_PRES=mean(PRES,na.rm=TRUE),
+  Max_Day_LWS=max(LWS,na.rm=TRUE),
+  Max_Day_LS=max(LS,na.rm=TRUE),
+  Max_Day_LR=max(LR,na.rm=TRUE),
+  Max_Day_CBWD=nth(CBWD,which.max(LWS)))
+# Convert Daily table to a data frame
+Pollution_Daily=as.data.frame(Pollution_Daily)
+# Check data structure and data summary
+str(Pollution_Daily)
+summary(Pollution_Daily)
+# Daily Plots
+ ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
+  geom_line()
+ ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
+  geom_line() 
+ggplot(Pollution_Daily, aes(Date_D, Avg_Day_TEMP)) +
+  geom_line()
+ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PRES)) +
+  geom_line()
+ggplot(Pollution_Daily, aes(Date_D, Max_Day_LWS)) +
+  geom_line()
+ggplot(Pollution_Daily, aes(Date_D, Max_Day_LS)) +
+  geom_line()
+ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
+  geom_line()
+#Use functions year, month and day to create Year, Month and Day Columns
+Pollution_Daily$Year=year(Pollution_Daily$Date_D)
+Pollution_Daily$Month=month(Pollution_Daily$Date_D)
+Pollution_Daily$Day=day(Pollution_Daily$Date_D)
+head(Pollution_Daily)
+#Fix NaN values in PM2.5 and set to NAs
+Pollution_Daily$Avg_Day_PM2.5[is.nan(Pollution_Daily$Avg_Day_PM2.5)]<-NA
+```
+
