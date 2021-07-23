@@ -1,6 +1,6 @@
 ---
-title: "Untitled"
-author: "Lelys"
+title: "Regression to the Mean"
+author: "Jennings Cheng, Zhengtao Xu, Collin Carmichael"
 date: "7/9/2021"
 output: html_document
 ---
