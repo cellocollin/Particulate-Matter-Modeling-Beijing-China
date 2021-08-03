@@ -1,9 +1,20 @@
 ---
 title: "Final Project"
-author: "Collin Carmichael"
+author: "Zhengtao Xu, Jennings Cheng and Collin Carmichael"
 date: "7/22/2021"
-output: html_document
+
+output:
+  pdf_document: 
+    latex_engine: xelatex
+    keep_tex: yes
+  html_document: default
 ---
+
+
+**Introduction**
+
+**Exploratory Data Analysis**
+
 
 ```{r include=FALSE}
 library(lars)
@@ -20,7 +31,7 @@ library(lmtest)
 library(nlme)
 ```
 
-```{r}
+```{r echo=FALSE}
 #Read and check data
 Pollution<-read.csv("Final Project Data.csv",header=TRUE)
 head(Pollution)
@@ -77,11 +88,20 @@ Pollution_Daily$Day=day(Pollution_Daily$Date_D)
 head(Pollution_Daily)
 #Fix NaN values in PM2.5 and set to NAs
 Pollution_Daily$Avg_Day_PM2.5[is.nan(Pollution_Daily$Avg_Day_PM2.5)]<-NA
+Pollution_Daily
+#Train test
+Pollution_Daily.test=Pollution_Daily[seq(1,nrow(Pollution_Daily),5), ]
+Pollution_Daily.train = Pollution_Daily[-seq(1, nrow(Pollution_Daily) , 5 ) , ]
+Pollution_Daily.test
+
+Pollution_Daily
 ```
 
-```{r}
+
+```{r , echo = FALSE }
 ##Fitting Full Model
-lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily)
+lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
+
 ```
 
 ```{r include=FALSE}
@@ -93,17 +113,20 @@ test_error_assumptions<-function(x){
   a=data.frame("Homocedasticity",b>0.05,"Normality",c>0.05,"Uncorrelated Errors",d>0.05)
   return(a)
 }
+
+bptest(lm_all)
 test_leverage<-function(x){
 n=nrow(model.matrix(x)); p=ncol(model.matrix(x));
 lev=influence(x)$hat
 a=lev[lev>2*p/n]
   return(a)
 }
+ncol(model.matrix(lm_all))
 test_outlier<-function(x){
   n=nrow(model.matrix(x)); p=ncol(model.matrix(x));
   jack=rstudent(x)
   b=jack[abs(jack)>abs(qt(.05/(2*n), n-p-1))]
-  c=qt(.05/(2*n), n-p-1)
+  c=abs(qt(.05/(2*n), n-p-1))
   d=">"
   a=data.frame(b,d,c)
   return(a)
@@ -116,7 +139,7 @@ test_influence<-function(x){
 }
 ```
 
-```{r}
+```{r echo = FALSE }
 par(mfrow=c(2,2))
 plot(lm_all)
 ```
@@ -135,9 +158,11 @@ test_leverage(lm_all)
 
 ```{r}
 test_outlier(lm_all)
+
 ```
 
 ```{r}
 ##Checking Interaction Term Significance
 anova(lm_all)
+
 ```
