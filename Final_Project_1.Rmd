@@ -108,7 +108,9 @@ library(corrplot);corrplot(cor(nump),method='circle')
 ```
 Looking at a correlation heatmap we see aside from dewpoint precipitation and temperature there are no significant correlation in other variable
 ```{r echo=FALSE}
+#Summary stat
 summary(Pollution_Daily)
+#9 graph that show distribution of number column
 par(mfrow=c(3,3))
 hist(Pollution_Daily$Avg_Day_PM2.5)
 
@@ -136,7 +138,10 @@ Rain is also infrequent but there are times when there is a lot of rain
 
 The most common direction is SE and NW while sometimes NE or CV
 
-
+```{r echo =FALSE}
+library(readr) 
+pairs(nump)
+```
 ```{r , echo = FALSE }
 ##Fitting Full Model
 lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
