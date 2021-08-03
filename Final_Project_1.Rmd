@@ -107,6 +107,19 @@ nump
 library(corrplot);corrplot(cor(nump),method='circle')
 ```
 Looking at a correlation heatmap we see aside from dewpoint precipitation and temperature there are no significant correlation in other variable
+```{r echo=FALSE}
+summary(Pollution_Daily)
+par(mfrow=c(3,3))
+hist(Pollution_Daily$Avg_Day_PM2.5)
+hist(Pollution_Daily$Avg_Day_DEWP)
+hist(Pollution_Daily$Avg_Day_TEMP)
+hist(Pollution_Daily$Avg_Day_PRES)
+hist(Pollution_Daily$Max_Day_LWS)
+hist(Pollution_Daily$Max_Day_LS)
+hist(Pollution_Daily$Max_Day_LR)
+barplot(prop.table(table(Pollution_Daily$Max_Day_CBWD)))
+Pollution_Daily$Max_Day_CBWD
+```
 ```{r , echo = FALSE }
 ##Fitting Full Model
 lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
