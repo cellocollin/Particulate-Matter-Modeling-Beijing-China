@@ -31,7 +31,7 @@ library(lmtest)
 library(nlme)
 ```
 
-```{r echo=FALSE}
+```{r include=FALSE}
 #Read and check data
 Pollution<-read.csv("Final Project Data.csv",header=TRUE)
 head(Pollution)
@@ -94,13 +94,25 @@ Pollution_Daily.test=Pollution_Daily[seq(1,nrow(Pollution_Daily),5), ]
 Pollution_Daily.train = Pollution_Daily[-seq(1, nrow(Pollution_Daily) , 5 ) , ]
 Pollution_Daily.test
 
-Pollution_Daily
+
 ```
+```{r echo=FALSE}
+Pollution_Daily_nona<-na.omit(Pollution_Daily)
+keeps<-c("Avg_Day_PM2.5",'Avg_Day_DEWP','Avg_Day_TEMP','Avg_Day_PRES','Max_Day_LWS' , 'Avg_Day_PRES' 
+         , 'Max_Day_LWS' , 'Max_Day_LS' , 'Max_Day_LR')
+keeper=Pollution_Daily_nona[keeps]
 
-
+cor(keeper)
+```
 ```{r , echo = FALSE }
 ##Fitting Full Model
 lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
+testpm=predict(lm_all , Pollution_Daily.test)
+
+summary(lm_all)
+plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
+lines( c(1:366),Pollution_Daily.test[,2])
+Sys.setenv(LANG = "EN")
 
 ```
 
