@@ -111,6 +111,7 @@ Looking at a correlation heatmap we see aside from dewpoint precipitation and te
 summary(Pollution_Daily)
 par(mfrow=c(3,3))
 hist(Pollution_Daily$Avg_Day_PM2.5)
+
 hist(Pollution_Daily$Avg_Day_DEWP)
 hist(Pollution_Daily$Avg_Day_TEMP)
 hist(Pollution_Daily$Avg_Day_PRES)
@@ -118,8 +119,24 @@ hist(Pollution_Daily$Max_Day_LWS)
 hist(Pollution_Daily$Max_Day_LS)
 hist(Pollution_Daily$Max_Day_LR)
 barplot(prop.table(table(Pollution_Daily$Max_Day_CBWD)))
-Pollution_Daily$Max_Day_CBWD
+qqnorm(Pollution_Daily$Avg_Day_PRES)
+qqline(Pollution_Daily$Avg_Day_PRES)
 ```
+We can see that PM2.5 has an inverse distribution with values skewed towards low PM2.5 but many high values that go beyond the median
+
+Temp and Dew point are highly related and so may not need to be included in the same model
+
+Precipitation looks like a bell curve but not normal as seen in the plot in 3,3
+
+Wind speed is similar but not identical to PM2.5 in that it has an inverse distribution so it may be highly important in prediction
+
+There is almost always not any snow in Beijing and the max is 27 for a day
+
+Rain is also infrequent but there are times when there is a lot of rain
+
+The most common direction is SE and NW while sometimes NE or CV
+
+
 ```{r , echo = FALSE }
 ##Fitting Full Model
 lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
