@@ -98,12 +98,15 @@ Pollution_Daily.test
 ```
 ```{r echo=FALSE}
 Pollution_Daily_nona<-na.omit(Pollution_Daily)
+  Pollution_Daily_nona
 keeps<-c("Avg_Day_PM2.5",'Avg_Day_DEWP','Avg_Day_TEMP','Avg_Day_PRES','Max_Day_LWS' , 'Avg_Day_PRES' 
          , 'Max_Day_LWS' , 'Max_Day_LS' , 'Max_Day_LR')
-keeper=Pollution_Daily_nona[keeps]
-
-cor(keeper)
+num_cols <- unlist(lapply(Pollution_Daily_nona, is.numeric))
+nump=Pollution_Daily_nona [ , num_cols ]
+nump
+library(corrplot);corrplot(cor(nump),method='circle')
 ```
+Looking at a correlation heatmap we see aside from dewpoint precipitation and temperature there are no significant correlation in other variable
 ```{r , echo = FALSE }
 ##Fitting Full Model
 lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
