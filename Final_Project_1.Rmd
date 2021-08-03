@@ -103,7 +103,7 @@ keeps<-c("Avg_Day_PM2.5",'Avg_Day_DEWP','Avg_Day_TEMP','Avg_Day_PRES','Max_Day_L
          , 'Max_Day_LWS' , 'Max_Day_LS' , 'Max_Day_LR')
 num_cols <- unlist(lapply(Pollution_Daily_nona, is.numeric))
 nump=Pollution_Daily_nona [ , num_cols ]
-nump
+
 library(corrplot);corrplot(cor(nump),method='circle')
 ```
 Looking at a correlation heatmap we see aside from dewpoint precipitation and temperature there are no significant correlation in other variable
@@ -139,9 +139,25 @@ Rain is also infrequent but there are times when there is a lot of rain
 The most common direction is SE and NW while sometimes NE or CV
 
 ```{r echo =FALSE}
-library(readr) 
-pairs(nump)
+library(ggpubr);par(mfrow=c(3,3))
+pm=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
+  geom_line()
+ dew=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
+  geom_line() 
+temp=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_TEMP)) +
+  geom_line()
+pres=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PRES)) +
+  geom_line()
+lws=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LWS)) +
+  geom_line()
+ls=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LS)) +
+  geom_line()
+lr=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
+  geom_line()
+figure=ggarrange(ncol=3,nrow=3,pm,dew,temp,pres,lws,ls,lr)
+figure
 ```
+We see that pm2.5 varies in a slightly seasonal way in that peaks are near the start of year while dew point and temperature all peak in middle and precipitation peak during beginning with snow - wind speed also are near the time period
 ```{r , echo = FALSE }
 ##Fitting Full Model
 lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
