@@ -166,8 +166,27 @@ testpm=predict(lm_all , Pollution_Daily.test)
 summary(lm_all)
 plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
-Sys.setenv(LANG = "EN")
+#partialregress
+r.ydew=update(lm_all , ~. - Avg_Day_DEWP)$res
 
+nonatrain <- na.omit(Pollution_Daily.train)
+r.dew=lm(Avg_Day_DEWP ~ . , data = nonatrain[ , - 2 ])$res
+
+
+tmp=lm(r.ydew ~ r.dew )
+partialregression<-data.frame(fullmodel=1:13,partco=1:13)
+
+
+partialregression[,1][1]=summary(lm_all)$coef[3]
+  partialregression[,2][1]=summary(tmp)$coef[2]
+partialregression
+
+r.ydate=update(lm_all , ~. -Date_D)$res
+r.date=lm(Date_D ~ . , data = nonatrain[ , - 2 ])$res
+tmp1=lm(r.ydate~r.date)
+partialregression[,1][2]=summary(lm_all)$coef[2]
+  partialregression[,2][2]=summary(tmp1)$coef[2]
+  partialregression
 ```
 
 ```{r include=FALSE}
