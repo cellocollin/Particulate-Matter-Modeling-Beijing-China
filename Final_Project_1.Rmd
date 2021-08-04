@@ -144,6 +144,7 @@ The most common direction is SE and NW while sometimes NE or CV
 
 ```{r echo =FALSE}
 #par(mfrow=c(3,3))
+
 pm=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
   geom_line()
  dew=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
@@ -159,12 +160,18 @@ ls=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LS)) +
 lr=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
   geom_line()
 figure=ggarrange(ncol=3,nrow=3,pm,dew,temp,pres,lws,ls,lr)
-figure
+#figure
 #not show
 options(warn=-1)
 suppressMessages(print(figure))
 ```
 We see that pm2.5 varies in a slightly seasonal way in that peaks are near the start of year while dew point and temperature all peak in middle and precipitation peak during beginning with snow - wind speed also are near the time period
+
+One thing that we can do also is based on common sense, we can predict that PM2.5 will not vary greatly with the day, month or year as we see that the pm2.5 time series is mostly random spikes with a mean of 200 about so let us see the day month and year
+```{r}
+
+```
+
 ```{r , echo = FALSE }
 ##Fitting Full Model
 lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
