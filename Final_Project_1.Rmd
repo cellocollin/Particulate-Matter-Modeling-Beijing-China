@@ -156,39 +156,27 @@ lr=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
   geom_line()
 figure=ggarrange(ncol=3,nrow=3,pm,dew,temp,pres,lws,ls,lr)
 figure
-head(Pollution_Daily)
-summary(lm_all)
+
+
 ```
 We see that pm2.5 varies in a slightly seasonal way in that peaks are near the start of year while dew point and temperature all peak in middle and precipitation peak during beginning with snow - wind speed also are near the time period
 ```{r , echo = FALSE }
 ##Fitting Full Model
 lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
 testpm=predict(lm_all , Pollution_Daily.test)
-
+#visually test
 summary(lm_all)
 plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
 #partialregress
 r.ydew=update(lm_all , ~. - Avg_Day_DEWP)$res
-
 nonatrain <- na.omit(Pollution_Daily.train)
 r.dew=lm(Avg_Day_DEWP ~ . , data = nonatrain[ , - 2 ])$res
-
-
 tmp=lm(r.ydew ~ r.dew )
-partialregression<-data.frame(fullmodel=1:13,partco=1:13)
-
-
-partialregression[,1][1]=summary(lm_all)$coef[3]
-  partialregression[,2][1]=summary(tmp)$coef[2]
-partialregression
-
 r.ydate=update(lm_all , ~. -Date_D)$res
 r.date=lm(Date_D ~ . , data = nonatrain[ , - 2 ])$res
 tmpdate=lm(r.ydate~r.date)
-partialregression[,1][2]=summary(lm_all)$coef[2]
-  partialregression[,2][2]=summary(tmp1)$coef[2]
-  partialregression
+
 r.ytemp=update(lm_all , ~. -Avg_Day_TEMP)$res
 r.temp=lm(Avg_Day_TEMP ~ . , data = nonatrain [ , -2 ])$res
 tmptemp=lm(r.ytemp~r.temp)
@@ -196,15 +184,48 @@ r.ypres=update(lm_all ,~. - Avg_Day_PRES)$res
 r.pres=lm(Avg_Day_PRES ~. , data=nonatrain[,-2])$res
 tmppres=lm(r.ypres~r.pres)
 r.ylws=update(lm_all,~. -Max_Day_WLS)$res
-r.lws=lm(Max_Day_WLS ~.,data=nonatrain[,-2])$res
-tmplws=lm(r.ylws~r.wls)
-r.yls < - update(lm_all,~. -Max_Day_LS)$res
-r.ls < - lm( Max_Day_LS ~. , data= nonatrain [ ,-2 ])$res
-tmpls < - lm(r.yls~r.ls)
-r.ylr < - update(lm_all ,~. - Max_Day_LR)$res
-r.lr < - lm(Max_Day_LR ~.,data = nonatrain[ , -2 ] )$res
-tmplr < - lm(r.ylr ~ r.lr )
+r.lws=lm(Max_Day_LWS ~.,data=nonatrain[,-2])$res
+tmplws=lm(r.ylws~r.lws)
+r.yls <- update(lm_all,~. -Max_Day_LS)$res
+r.ls <- lm( Max_Day_LS ~. , data= nonatrain [ ,-2 ])$res
+tmpls <- lm(r.yls~r.ls)
+r.ylr <- update(lm_all ,~. - Max_Day_LR)$res
+r.lr <- lm(Max_Day_LR ~.,data = nonatrain[ , -2 ] )$res
+tmplr <- lm(r.ylr ~ r.lr )
+r.yyear = update (lm_all,~.-Year)$res
+r.year=lm(Year~.,data=nonatrain[ , -2 ] )$res
+tmpyear=lm(r.yyear~r.year)
+r.ymonth = update (lm_all,~.-Month)$res
+r.month = lm(Month~.,data=nonatrain[,-2])$res
+tmpmonth=lm(r.ymonth~r.month)
+r.yday=update(lm_all,~.-Day)$res
+r.day=lm(Day~.,data=nonatrain[,-2])$res
+tmpday=lm(r.yday~r.day)
+#5x2 to show each
+par(mfrow=c(2,5))
+plot(r.dew,r.ydew,xlab="dew residual",ylab="Pollution residual")
+abline(tmp)
+titles="Pollution residual"
+plot(r.date,r.ydate,xlab="date residual",ylab=titles)
+abline(tmpdate)
+plot(r.temp,r.ytemp,xlab="temp residual",ylab=titles)
+abline(tmptemp)
+plot(r.pres,r.ypres,xlab="pres residual",ylab= titles)
+abline(tmppres)
 
+plot(r.lws,r.ylws,xlab="lws residual",ylab=titles)
+abline(tmplws)
+plot(r.ls,r.yls,xlab='ls residual',ylab=titles)
+abline(tmpls)
+plot(r.lr,r.ylr,xlab='lr residual',ylab=titles)
+abline(tmplr)
+plot(r.year,r.yyear,xlab='year residual' , ylab=titles)
+abline(tmpyear)
+
+plot(r.month,r.ymonth,xlab="month residual",ylab=titles)
+abline(tmpmonth)
+plot(r.day,r.yday,xlab="day residual",ylab=titles)
+abline(tmpday)
 ```
 
 ```{r include=FALSE}
