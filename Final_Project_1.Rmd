@@ -25,7 +25,10 @@ library(pls)
 library("tidyverse")
 library("lubridate")
 library("ggplot2")
+library(ggcorrplot)
+library(corrplot)
 library(dplyr)
+library(ggpubr)
 library(faraway)
 library(lmtest)
 library(nlme)
@@ -98,18 +101,19 @@ Pollution_Daily.test
 ```
 ```{r echo=FALSE}
 Pollution_Daily_nona<-na.omit(Pollution_Daily)
-  Pollution_Daily_nona
+  #Pollution_Daily_nona
 keeps<-c("Avg_Day_PM2.5",'Avg_Day_DEWP','Avg_Day_TEMP','Avg_Day_PRES','Max_Day_LWS' , 'Avg_Day_PRES' 
          , 'Max_Day_LWS' , 'Max_Day_LS' , 'Max_Day_LR')
 num_cols <- unlist(lapply(Pollution_Daily_nona, is.numeric))
 nump=Pollution_Daily_nona [ , num_cols ]
 
-library(corrplot);corrplot(cor(nump),method='circle')
+ggcorrplot(cor(nump))
 ```
 Looking at a correlation heatmap we see aside from dewpoint precipitation and temperature there are no significant correlation in other variable
+
 ```{r echo=FALSE}
 #Summary stat
-summary(Pollution_Daily)
+#summary(Pollution_Daily)
 #9 graph that show distribution of number column
 par(mfrow=c(3,3))
 hist(Pollution_Daily$Avg_Day_PM2.5)
@@ -139,7 +143,7 @@ Rain is also infrequent but there are times when there is a lot of rain
 The most common direction is SE and NW while sometimes NE or CV
 
 ```{r echo =FALSE}
-library(ggpubr);par(mfrow=c(3,3))
+#par(mfrow=c(3,3))
 pm=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
   geom_line()
  dew=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
@@ -156,8 +160,9 @@ lr=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
   geom_line()
 figure=ggarrange(ncol=3,nrow=3,pm,dew,temp,pres,lws,ls,lr)
 figure
-
-
+#not show
+options(warn=-1)
+suppressMessages(print(figure))
 ```
 We see that pm2.5 varies in a slightly seasonal way in that peaks are near the start of year while dew point and temperature all peak in middle and precipitation peak during beginning with snow - wind speed also are near the time period
 ```{r , echo = FALSE }
@@ -227,7 +232,9 @@ abline(tmpmonth)
 plot(r.day,r.yday,xlab="day residual",ylab=titles)
 abline(tmpday)
 ```
+After fitting a full model we see every single predictor is significant however R square is only 0.4 which suggests even though each coefficient is directionally correct the variation of response is not accurate
 
+Doing a diagnostic of partial regression, There are no normally distributed partial regression and therefore the model is not linear
 ```{r include=FALSE}
 ##Functions to make Diagnostics Easier
 test_error_assumptions<-function(x){
@@ -268,24 +275,24 @@ par(mfrow=c(2,2))
 plot(lm_all)
 ```
 
-```{r}
+```{r echo=FALSE}
 test_error_assumptions(lm_all)
 ```
 
-```{r}
+```{r echo=FALSE}
 test_influence(lm_all)
 ```
 
-```{r}
+```{r echo=FALSE}
 test_leverage(lm_all)
 ```
 
-```{r}
+```{r echo=FALSE}
 test_outlier(lm_all)
 
 ```
 
-```{r}
+```{r echo=FALSE}
 ##Checking Interaction Term Significance
 anova(lm_all)
 
