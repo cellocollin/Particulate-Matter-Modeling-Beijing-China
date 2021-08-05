@@ -1,7 +1,7 @@
 ---
 title: "Final Project: Regression From The Mean"
 author: "Zhengtao Xu, Jennings Cheng and Collin Carmichael"
-date: "7/22/2021"
+date: "8/6/2021"
 
 output:
   pdf_document: 
@@ -326,5 +326,7 @@ As we can see above, we also have five outliers in the dataset. We can remove th
 Pollution_Daily.train.new=Pollution_Daily.train[-c(417,1108,1477,1517,1518),]
 lm_all_2=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train.new)
 ```
+
+
 
 **Section 4: Conclusions**
