@@ -34,11 +34,14 @@ library(faraway)
 library(lmtest)
 library(nlme)
 library(MASS)
+
 ```
+
 
 ```{r include=FALSE}
 #Read and check data
 Pollution<-read.csv("Final Project Data.csv",header=TRUE)
+Pollution
 head(Pollution)
 names(Pollution)
 summary(Pollution)
@@ -48,6 +51,7 @@ Pollution$PRES<-as.numeric(Pollution$PRES)
 summary(Pollution)
 #Create date-time column for hourly data
 Pollution$Date_H=with(Pollution, ymd_h(paste(Year, Month, Day, Hour, sep= ' ')))
+Pollution
 #Create date column for daily data
 Pollution$Date_D=with(Pollution, ymd(paste(Year, Month, Day)))
 Pollution[1:5,]
@@ -55,6 +59,7 @@ Pollution[1:5,]
 Pollution %>% 
   ggplot(aes(Date_H,PM2.5))+ geom_line()
 # Build Daily data
+Pollution
 Pollution_Daily<-Pollution %>%
   group_by(Date_D) %>%
   summarise(
@@ -66,12 +71,14 @@ Pollution_Daily<-Pollution %>%
   Max_Day_LS=max(LS,na.rm=TRUE),
   Max_Day_LR=max(LR,na.rm=TRUE),
   Max_Day_CBWD=nth(CBWD,which.max(LWS)))
+Pollution_Daily
 # Convert Daily table to a data frame
 Pollution_Daily=as.data.frame(Pollution_Daily)
 # Check data structure and data summary
 str(Pollution_Daily)
 summary(Pollution_Daily)
 # Daily Plots
+
  ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
   geom_line()
  ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
@@ -99,7 +106,7 @@ Pollution_Daily.test=Pollution_Daily[seq(1,nrow(Pollution_Daily),5), ]
 Pollution_Daily.train = Pollution_Daily[-seq(1, nrow(Pollution_Daily) , 5 ) , ]
 Pollution_Daily.test
 
-
+Pollution$CBWD
 ```
 ```{r echo=FALSE}
 Pollution_Daily_nona<-na.omit(Pollution_Daily)

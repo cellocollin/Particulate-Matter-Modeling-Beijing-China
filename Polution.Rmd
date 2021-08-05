@@ -35,7 +35,7 @@ summary(Pollution)
 Pollution$Date_H=with(Pollution, ymd_h(paste(Year, Month, Day, Hour, sep= ' ')))
 #Create date column for daily data
 Pollution$Date_D=with(Pollution, ymd(paste(Year, Month, Day)))
-Pollution[1:5,]
+Pollution
 #Hourly Plots
 Pollution %>% 
   ggplot(aes(Date_H,PM2.5))+ geom_line()
@@ -51,7 +51,7 @@ Pollution_Daily<-Pollution %>%
   Max_Day_LS=max(LS,na.rm=TRUE),
   Max_Day_LR=max(LR,na.rm=TRUE),
   Max_Day_CBWD=nth(CBWD,which.max(LWS)))
-# Convert Daily table to a data frame
+Pollution_Daily# Convert Daily table to a data frame
 Pollution_Daily=as.data.frame(Pollution_Daily)
 # Check data structure and data summary
 str(Pollution_Daily)
