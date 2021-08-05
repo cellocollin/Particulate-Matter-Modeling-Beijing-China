@@ -226,9 +226,8 @@ r.ydew=update(lm_all , ~. - Avg_Day_DEWP)$res
 nonatrain <- na.omit(Pollution_Daily.train)
 r.dew=lm(Avg_Day_DEWP ~ . , data = nonatrain[ , - 2 ])$res
 tmp=lm(r.ydew ~ r.dew )
-r.ydate=update(lm_all , ~. -Date_D)$res
-r.date=lm(Date_D ~ . , data = nonatrain[ , - 2 ])$res
-tmpdate=lm(r.ydate~r.date)
+
+
 r.ytemp=update(lm_all , ~. -Avg_Day_TEMP)$res
 r.temp=lm(Avg_Day_TEMP ~ . , data = nonatrain [ , -2 ])$res
 tmptemp=lm(r.ytemp~r.temp)
