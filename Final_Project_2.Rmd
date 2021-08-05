@@ -205,13 +205,22 @@ As we see the variation between the month year and day is important and vary so 
 ```{r , echo = FALSE }
 ##Fitting Full Model
 
-lm_all=lm(Avg_Day_PM2.5~.-Date_D,data=Pollution_Daily.train)
-lm_all
-testpm=predict(lm_all , Pollution_Daily.test)
+lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train [ , -1 ])
+row.names(Pollution_Daily.test) <- NULL
+
+testpm=predict.lm(lm_all , Pollution_Daily.test [ , -1 ] )
+
 #visually test
 summary(lm_all)
 plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
+summary(lm_all)$coefficients[,4]
+summary(lm_all)[8]
+
+```
+After fitting a full model we see every single predictor is significant however R square is only 0.4 which suggests even though each coefficient is directionally correct the variation of response is not accurate
+
+```{r}
 #partialregress
 r.ydew=update(lm_all , ~. - Avg_Day_DEWP)$res
 nonatrain <- na.omit(Pollution_Daily.train)
@@ -220,7 +229,6 @@ tmp=lm(r.ydew ~ r.dew )
 r.ydate=update(lm_all , ~. -Date_D)$res
 r.date=lm(Date_D ~ . , data = nonatrain[ , - 2 ])$res
 tmpdate=lm(r.ydate~r.date)
-
 r.ytemp=update(lm_all , ~. -Avg_Day_TEMP)$res
 r.temp=lm(Avg_Day_TEMP ~ . , data = nonatrain [ , -2 ])$res
 tmptemp=lm(r.ytemp~r.temp)
@@ -271,10 +279,6 @@ abline(tmpmonth)
 plot(r.day,r.yday,xlab="day residual",ylab=titles)
 abline(tmpday)
 ```
-After fitting a full model we see every single predictor is significant however R square is only 0.4 which suggests even though each coefficient is directionally correct the variation of response is not accurate
-
-Doing a diagnostic of partial regression, There are no normally distributed partial regression and therefore the model is not linear
-
 **Section 3: Methods**
 ```{r include=FALSE}
 ##Functions to make Diagnostics Easier
