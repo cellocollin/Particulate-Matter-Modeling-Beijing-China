@@ -33,6 +33,7 @@ library(plyr)
 library(faraway)
 library(lmtest)
 library(nlme)
+library(MASS)
 ```
 
 ```{r include=FALSE}
@@ -303,22 +304,32 @@ test_influence<-function(x){
 }
 ```
 
+```{r echo=FALSE}
+##Sequential Anova
+anova(lm_all)$Pr
+```
+Through sequential anova we can determine that our predictor variable Date_D is not significant, therefore we can remove it.  
+
+```{r echo=FALSE}
+lm_all_2=lm(Avg_Day_PM2.5~.-Date_D,data=Pollution_Daily.train)
+```
+
 ```{r echo = FALSE }
 par(mfrow=c(2,2))
-plot(lm_all)
+plot(lm_all_2)
 ```
 Taking a glance at our linear model, we see that it does not appear to meet all error assumptions.  Particularly, the Q-Q plot suggests non-normality and the Fitted-Residual plot suggests heteroscedasticity and some degree of non-linearity.  However, the Residuals-Leverage plot appears to indicate that we don't have any high influence points.
 
 
 ```{r echo=FALSE}
-##test_error_assumptions(lm_all)
+##test_error_assumptions(lm_all_2)
 
 ##Testing Homocedasticity
-bptest(lm_all)
+bptest(lm_all_2)
 ##Testing Normality
-shapiro.test(residuals(lm_all))
+shapiro.test(residuals(lm_all_2))
 ##Testing Uncorrelated Errors
-dwtest(lm_all)
+dwtest(lm_all_2)
 ```
 As we can tell through testing more formally, none of the error assumptions of homocedasticity, normality, and uncorrelated errors are accurate.
 
@@ -327,31 +338,57 @@ As we can tell through testing more formally, none of the error assumptions of h
 ##test_leverage(lm_all)
 par(mfrow=c(1,2))
 ##Plot cooks.distance
-cook = cooks.distance(lm_all)
+cook = cooks.distance(lm_all_2)
 halfnorm(cook, labs=row.names(Pollution_Daily.train), ylab="Cook's distances")
 ##Plot Leverages
-lev=influence(lm_all)$hat
+lev=influence(lm_all_2)$hat
 halfnorm(lev, labs=row.names(Pollution_Daily.train), ylab="Leverages")
 ##Checking for cooks.distance greater than 1
-# max(cooks.distance(lm_all))
+# max(cooks.distance(lm_all_2))
 ##Check For High Leverage Points
-# n=nrow(model.matrix(lm_all)); p=ncol(model.matrix(lm_all));
+# n=nrow(model.matrix(lm_all_2)); p=ncol(model.matrix(lm_all_2));
 # lev[lev>2*p/n]
 
 ```
 In regards to unusual observations, our maximum cooks distance as seen above indicates we have no datapoints that would be classified as highly influential, since it is much less than one.  In constrast, however, we seem to have an abundance of high-leverage points.  However, it is unclear at first glance how many of these are "good" or "bad" leverage points, although we can assume some points like observations 3 and 1468 with wildly different y-values are likely "bad."
 
+
+
 ```{r echo=FALSE}
-test_outlier(lm_all)
+test_outlier(lm_all_2)
+# rstudent(lm_all_2)
 ```
-As we can see above, we also have five outliers in the dataset. We can remove these outliers from our dataset and refit the model, and see how this changes our diagnostics.
+As we can see above, we also have four outliers in the dataset. We can remove these outliers from our dataset and refit the model, and see how this changes our diagnostics.
 
-```{r}
-##Remove Outliers
-Pollution_Daily.train.new=Pollution_Daily.train[-c(417,1108,1477,1517,1518),]
-lm_all_2=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train.new)
+```{r echo=FALSE}
+##Remove Outliers-Note that with the rows we must be mindful we removed one in five values from the train data.  We must multiply our outlier residuals by 4/5 and round down to the nearest integer.
+Pollution_Daily.train.new<-Pollution_Daily.train[-c(333,886,1181,1213),]
+lm_all_3=lm(Avg_Day_PM2.5~.-Date_D,data=Pollution_Daily.train.new)
 ```
 
+```{r echo=FALSE}
+test_outlier(lm_all_3)
+```
 
+```{r echo=FALSE}
+boxcox(lm_all_3,plotit=T)
+par(mfrow=c(2,2))
+bc=boxcox(lm_all_3);
+lambda=bc$x[which.max(bc$y)]
+```
+
+```{r echo=FALSE}
+##Fitting BoxCox model
+lm_all_4=lm((Avg_Day_PM2.5^lambda-1)/lambda~.-Date_D,data=Pollution_Daily.train.new)
+summary(lm_all_4)
+
+```
+
+```{r echo=FALSE}
+g = gls(Avg_Day_PM2.5~.-Date_D, correlation = corARMA(p=1), data=na.omit(Pollution_Daily.train.new))
+summary(g)
+```
 
 **Section 4: Conclusions**
+
+Through our analysis we have learned many things, such as:
