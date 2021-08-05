@@ -11,9 +11,9 @@ output:
 ---
 
 
-**Introduction**
+**Section 1: Introduction**
 
-**Exploratory Data Analysis**
+**Section 2: Exploratory Data Analysis**
 
 
 ```{r include=FALSE}
@@ -243,7 +243,7 @@ After fitting a full model we see every single predictor is significant however 
 
 Doing a diagnostic of partial regression, There are no normally distributed partial regression and therefore the model is not linear
 
-**Methods**
+**Section 3: Methods**
 ```{r include=FALSE}
 ##Functions to make Diagnostics Easier
 test_error_assumptions<-function(x){
@@ -327,4 +327,4 @@ Pollution_Daily.train.new=Pollution_Daily.train[-c(417,1108,1477,1517,1518),]
 lm_all_2=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train.new)
 ```
 
-**Conclusions**
+**Section 4: Conclusions**
