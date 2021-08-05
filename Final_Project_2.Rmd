@@ -1,0 +1,330 @@
+---
+title: "Final Project: Regression From The Mean"
+author: "Zhengtao Xu, Jennings Cheng and Collin Carmichael"
+date: "7/22/2021"
+
+output:
+  pdf_document: 
+    latex_engine: xelatex
+    keep_tex: yes
+  html_document: default
+---
+
+
+**Introduction**
+
+**Exploratory Data Analysis**
+
+
+```{r include=FALSE}
+library(lars)
+library(sm)
+library(leaps)
+library(stats)
+library(pls)
+library("tidyverse")
+library("lubridate")
+library("ggplot2")
+library(ggcorrplot)
+library(corrplot)
+library(dplyr)
+library(ggpubr)
+library(faraway)
+library(lmtest)
+library(nlme)
+```
+
+```{r include=FALSE}
+#Read and check data
+Pollution<-read.csv("Final Project Data.csv",header=TRUE)
+head(Pollution)
+names(Pollution)
+summary(Pollution)
+# Change TEMP and PRES as numeric
+Pollution$TEMP<-as.numeric(Pollution$TEMP)
+Pollution$PRES<-as.numeric(Pollution$PRES)
+summary(Pollution)
+#Create date-time column for hourly data
+Pollution$Date_H=with(Pollution, ymd_h(paste(Year, Month, Day, Hour, sep= ' ')))
+#Create date column for daily data
+Pollution$Date_D=with(Pollution, ymd(paste(Year, Month, Day)))
+Pollution[1:5,]
+#Hourly Plots
+Pollution %>% 
+  ggplot(aes(Date_H,PM2.5))+ geom_line()
+# Build Daily data
+Pollution_Daily<-Pollution %>%
+  group_by(Date_D) %>%
+  summarise(
+  Avg_Day_PM2.5=mean(PM2.5,na.rm=TRUE),
+  Avg_Day_DEWP=mean(DEWP,na.rm=TRUE),
+  Avg_Day_TEMP=mean(TEMP,na.rm=TRUE),
+  Avg_Day_PRES=mean(PRES,na.rm=TRUE),
+  Max_Day_LWS=max(LWS,na.rm=TRUE),
+  Max_Day_LS=max(LS,na.rm=TRUE),
+  Max_Day_LR=max(LR,na.rm=TRUE),
+  Max_Day_CBWD=nth(CBWD,which.max(LWS)))
+# Convert Daily table to a data frame
+Pollution_Daily=as.data.frame(Pollution_Daily)
+# Check data structure and data summary
+str(Pollution_Daily)
+summary(Pollution_Daily)
+# Daily Plots
+ ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
+  geom_line()
+ ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
+  geom_line() 
+ggplot(Pollution_Daily, aes(Date_D, Avg_Day_TEMP)) +
+  geom_line()
+ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PRES)) +
+  geom_line()
+ggplot(Pollution_Daily, aes(Date_D, Max_Day_LWS)) +
+  geom_line()
+ggplot(Pollution_Daily, aes(Date_D, Max_Day_LS)) +
+  geom_line()
+ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
+  geom_line()
+#Use functions year, month and day to create Year, Month and Day Columns
+Pollution_Daily$Year=year(Pollution_Daily$Date_D)
+Pollution_Daily$Month=month(Pollution_Daily$Date_D)
+Pollution_Daily$Day=day(Pollution_Daily$Date_D)
+head(Pollution_Daily)
+#Fix NaN values in PM2.5 and set to NAs
+Pollution_Daily$Avg_Day_PM2.5[is.nan(Pollution_Daily$Avg_Day_PM2.5)]<-NA
+Pollution_Daily
+#Train test
+Pollution_Daily.test=Pollution_Daily[seq(1,nrow(Pollution_Daily),5), ]
+Pollution_Daily.train = Pollution_Daily[-seq(1, nrow(Pollution_Daily) , 5 ) , ]
+Pollution_Daily.test
+
+
+```
+```{r echo=FALSE}
+Pollution_Daily_nona<-na.omit(Pollution_Daily)
+  #Pollution_Daily_nona
+keeps<-c("Avg_Day_PM2.5",'Avg_Day_DEWP','Avg_Day_TEMP','Avg_Day_PRES','Max_Day_LWS' , 'Avg_Day_PRES' 
+         , 'Max_Day_LWS' , 'Max_Day_LS' , 'Max_Day_LR')
+num_cols <- unlist(lapply(Pollution_Daily_nona, is.numeric))
+nump=Pollution_Daily_nona [ , num_cols ]
+
+ggcorrplot(cor(nump))
+```
+Looking at a correlation heatmap we see aside from dewpoint precipitation and temperature there are no significant correlation in other variable
+
+```{r echo=FALSE}
+#Summary stat
+#summary(Pollution_Daily)
+#9 graph that show distribution of number column
+par(mfrow=c(3,3))
+hist(Pollution_Daily$Avg_Day_PM2.5)
+
+hist(Pollution_Daily$Avg_Day_DEWP)
+hist(Pollution_Daily$Avg_Day_TEMP)
+hist(Pollution_Daily$Avg_Day_PRES)
+hist(Pollution_Daily$Max_Day_LWS)
+hist(Pollution_Daily$Max_Day_LS)
+hist(Pollution_Daily$Max_Day_LR)
+barplot(prop.table(table(Pollution_Daily$Max_Day_CBWD)))
+qqnorm(Pollution_Daily$Avg_Day_PRES)
+qqline(Pollution_Daily$Avg_Day_PRES)
+```
+We can see that PM2.5 has an inverse distribution with values skewed towards low PM2.5 but many high values that go beyond the median
+
+Temp and Dew point are highly related and so may not need to be included in the same model
+
+Precipitation looks like a bell curve but not normal as seen in the plot in 3,3
+
+Wind speed is similar but not identical to PM2.5 in that it has an inverse distribution so it may be highly important in prediction
+
+There is almost always not any snow in Beijing and the max is 27 for a day
+
+Rain is also infrequent but there are times when there is a lot of rain
+
+The most common direction is SE and NW while sometimes NE or CV
+
+```{r echo =FALSE,warning=FALSE}
+#par(mfrow=c(3,3))
+
+pm=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
+  geom_line()
+ dew=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
+  geom_line() 
+temp=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_TEMP)) +
+  geom_line()
+pres=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PRES)) +
+  geom_line()
+lws=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LWS)) +
+  geom_line()
+ls=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LS)) +
+  geom_line()
+lr=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
+  geom_line()
+figure=ggarrange(ncol=3,nrow=3,pm,dew,temp,pres,lws,ls,lr)
+#figure
+#not show
+options(warn=-1)
+suppressMessages(print(figure))
+```
+We see that pm2.5 varies in a slightly seasonal way in that peaks are near the start of year while dew point and temperature all peak in middle and precipitation peak during beginning with snow - wind speed also are near the time period
+
+One thing that we can do also is based on common sense, we can predict that PM2.5 will not vary greatly with the day, month or year as we see that the pm2.5 time series is mostly random spikes with a mean of 200 about so let us see the day month and year
+```{r}
+
+```
+
+```{r , echo = FALSE }
+##Fitting Full Model
+lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
+testpm=predict(lm_all , Pollution_Daily.test)
+#visually test
+summary(lm_all)
+plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
+lines( c(1:366),Pollution_Daily.test[,2])
+#partialregress
+r.ydew=update(lm_all , ~. - Avg_Day_DEWP)$res
+nonatrain <- na.omit(Pollution_Daily.train)
+r.dew=lm(Avg_Day_DEWP ~ . , data = nonatrain[ , - 2 ])$res
+tmp=lm(r.ydew ~ r.dew )
+r.ydate=update(lm_all , ~. -Date_D)$res
+r.date=lm(Date_D ~ . , data = nonatrain[ , - 2 ])$res
+tmpdate=lm(r.ydate~r.date)
+
+r.ytemp=update(lm_all , ~. -Avg_Day_TEMP)$res
+r.temp=lm(Avg_Day_TEMP ~ . , data = nonatrain [ , -2 ])$res
+tmptemp=lm(r.ytemp~r.temp)
+r.ypres=update(lm_all ,~. - Avg_Day_PRES)$res
+r.pres=lm(Avg_Day_PRES ~. , data=nonatrain[,-2])$res
+tmppres=lm(r.ypres~r.pres)
+r.ylws=update(lm_all,~. -Max_Day_WLS)$res
+r.lws=lm(Max_Day_LWS ~.,data=nonatrain[,-2])$res
+tmplws=lm(r.ylws~r.lws)
+r.yls <- update(lm_all,~. -Max_Day_LS)$res
+r.ls <- lm( Max_Day_LS ~. , data= nonatrain [ ,-2 ])$res
+tmpls <- lm(r.yls~r.ls)
+r.ylr <- update(lm_all ,~. - Max_Day_LR)$res
+r.lr <- lm(Max_Day_LR ~.,data = nonatrain[ , -2 ] )$res
+tmplr <- lm(r.ylr ~ r.lr )
+r.yyear = update (lm_all,~.-Year)$res
+r.year=lm(Year~.,data=nonatrain[ , -2 ] )$res
+tmpyear=lm(r.yyear~r.year)
+r.ymonth = update (lm_all,~.-Month)$res
+r.month = lm(Month~.,data=nonatrain[,-2])$res
+tmpmonth=lm(r.ymonth~r.month)
+r.yday=update(lm_all,~.-Day)$res
+r.day=lm(Day~.,data=nonatrain[,-2])$res
+tmpday=lm(r.yday~r.day)
+#5x2 to show each
+par(mfrow=c(2,5))
+plot(r.dew,r.ydew,xlab="dew residual",ylab="Pollution residual")
+abline(tmp)
+titles="Pollution residual"
+plot(r.date,r.ydate,xlab="date residual",ylab=titles)
+abline(tmpdate)
+plot(r.temp,r.ytemp,xlab="temp residual",ylab=titles)
+abline(tmptemp)
+plot(r.pres,r.ypres,xlab="pres residual",ylab= titles)
+abline(tmppres)
+
+plot(r.lws,r.ylws,xlab="lws residual",ylab=titles)
+abline(tmplws)
+plot(r.ls,r.yls,xlab='ls residual',ylab=titles)
+abline(tmpls)
+plot(r.lr,r.ylr,xlab='lr residual',ylab=titles)
+abline(tmplr)
+plot(r.year,r.yyear,xlab='year residual' , ylab=titles)
+abline(tmpyear)
+
+plot(r.month,r.ymonth,xlab="month residual",ylab=titles)
+abline(tmpmonth)
+plot(r.day,r.yday,xlab="day residual",ylab=titles)
+abline(tmpday)
+```
+After fitting a full model we see every single predictor is significant however R square is only 0.4 which suggests even though each coefficient is directionally correct the variation of response is not accurate
+
+Doing a diagnostic of partial regression, There are no normally distributed partial regression and therefore the model is not linear
+
+**Methods**
+```{r include=FALSE}
+##Functions to make Diagnostics Easier
+test_error_assumptions<-function(x){
+  b=bptest(x)$p.value
+  c=shapiro.test(residuals(x))$p.value
+  d=dwtest(x)$p.value
+  a=data.frame("Homocedasticity",b>0.05,"Normality",c>0.05,"Uncorrelated Errors",d>0.05)
+  return(a)
+}
+
+test_leverage<-function(x){
+n=nrow(model.matrix(x)); p=ncol(model.matrix(x));
+lev=influence(x)$hat
+a=lev[lev>2*p/n]
+  return(a)
+}
+ncol(model.matrix(lm_all))
+test_outlier<-function(x){
+  n=nrow(model.matrix(x)); p=ncol(model.matrix(x));
+  jack=rstudent(x)
+  b=jack[abs(jack)>abs(qt(.05/(2*n), n-p-1))]
+  c=abs(qt(.05/(2*n), n-p-1))
+  d=">"
+  a=data.frame(b,d,c)
+  return(a)
+}
+test_influence<-function(x){
+  cook=cooks.distance(x)
+  b=cook[cook>1]
+  a=data.frame(b)
+  return(a)
+}
+```
+
+```{r echo = FALSE }
+par(mfrow=c(2,2))
+plot(lm_all)
+```
+Taking a glance at our linear model, we see that it does not appear to meet all error assumptions.  Particularly, the Q-Q plot suggests non-normality and the Fitted-Residual plot suggests heteroscedasticity and some degree of non-linearity.  However, the Residuals-Leverage plot appears to indicate that we don't have any high influence points.
+
+
+```{r echo=FALSE}
+##test_error_assumptions(lm_all)
+
+##Testing Homocedasticity
+bptest(lm_all)
+##Testing Normality
+shapiro.test(residuals(lm_all))
+##Testing Uncorrelated Errors
+dwtest(lm_all)
+```
+As we can tell through testing more formally, none of the error assumptions of homocedasticity, normality, and uncorrelated errors are accurate.
+
+```{r echo=FALSE}
+##test_influence(lm_all)
+##test_leverage(lm_all)
+par(mfrow=c(1,2))
+##Plot cooks.distance
+cook = cooks.distance(lm_all)
+halfnorm(cook, labs=row.names(Pollution_Daily.train), ylab="Cook's distances")
+##Plot Leverages
+lev=influence(lm_all)$hat
+halfnorm(lev, labs=row.names(Pollution_Daily.train), ylab="Leverages")
+##Checking for cooks.distance greater than 1
+# max(cooks.distance(lm_all))
+##Check For High Leverage Points
+# n=nrow(model.matrix(lm_all)); p=ncol(model.matrix(lm_all));
+# lev[lev>2*p/n]
+
+```
+In regards to unusual observations, our maximum cooks distance as seen above indicates we have no datapoints that would be classified as highly influential, since it is much less than one.  In constrast, however, we seem to have an abundance of high-leverage points.  However, it is unclear at first glance how many of these are "good" or "bad" leverage points, although we can assume some points like observations 3 and 1468 with wildly different y-values are likely "bad."
+
+```{r echo=FALSE}
+test_outlier(lm_all)
+```
+As we can see above, we also have five outliers in the dataset. We can remove these outliers from our dataset and refit the model, and see how this changes our diagnostics.
+
+```{r}
+##Remove Outliers
+Pollution_Daily.train.new=Pollution_Daily.train[-c(417,1108,1477,1517,1518),]
+lm_all_2=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train.new)
+```
+
+**Conclusions**
