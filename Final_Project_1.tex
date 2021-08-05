@@ -99,16 +99,16 @@ Rain is also infrequent but there are times when there is a lot of rain
 
 The most common direction is SE and NW while sometimes NE or CV
 
-\begin{verbatim}
-## Warning: Removed 1 row(s) containing missing values (geom_path).
-\end{verbatim}
-
 \includegraphics{Final_Project_1_files/figure-latex/unnamed-chunk-5-1.pdf}
-\includegraphics{Final_Project_1_files/figure-latex/unnamed-chunk-5-2.pdf}
 We see that pm2.5 varies in a slightly seasonal way in that peaks are
 near the start of year while dew point and temperature all peak in
 middle and precipitation peak during beginning with snow - wind speed
 also are near the time period
+
+One thing that we can do also is based on common sense, we can predict
+that PM2.5 will not vary greatly with the day, month or year as we see
+that the pm2.5 time series is mostly random spikes with a mean of 200
+about so let us see the day month and year
 
 \begin{verbatim}
 ## 
@@ -144,8 +144,127 @@ also are near the time period
 ## F-statistic: 74.71 on 13 and 1420 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-\includegraphics{Final_Project_1_files/figure-latex/unnamed-chunk-6-1.pdf}
-\includegraphics{Final_Project_1_files/figure-latex/unnamed-chunk-6-2.pdf}
+\includegraphics{Final_Project_1_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<e5>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<91>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<a8>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<e4>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<b8>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<89>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<e5>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<91>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<a8>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<e4>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<b8>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨ä¸‰'³ö´í£º<89>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨å››'³ö´í£º<e5>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨å››'³ö´í£º<91>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨å››'³ö´í£º<a8>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨å››'³ö´í£º<e5>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨å››'³ö´í£º<9b>´úÌæÁËdot
+
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨å››'³ö´í£º<9b>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨äº”'³ö´í£º<e5>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨äº”'³ö´í£º<91>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨äº”'³ö´í£º<a8>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨äº”'³ö´í£º<e4>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨äº”'³ö´í£º<ba>´úÌæÁËdot
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in axis(side, at = z, labels = labels, ...):
+## 'mbcsToSbcs'Àï×ª»»'å‘¨äº”'³ö´í£º<94>´úÌæÁËdot
+\end{verbatim}
+
+\includegraphics{Final_Project_1_files/figure-latex/unnamed-chunk-7-2.pdf}
 After fitting a full model we see every single predictor is significant
 however R square is only 0.4 which suggests even though each coefficient
 is directionally correct the variation of response is not accurate
@@ -153,7 +272,7 @@ is directionally correct the variation of response is not accurate
 Doing a diagnostic of partial regression, There are no normally
 distributed partial regression and therefore the model is not linear
 
-\includegraphics{Final_Project_1_files/figure-latex/unnamed-chunk-8-1.pdf}
+\includegraphics{Final_Project_1_files/figure-latex/unnamed-chunk-9-1.pdf}
 
 \begin{verbatim}
 ##    X.Homocedasticity. b...0.05 X.Normality. c...0.05 X.Uncorrelated.Errors.
