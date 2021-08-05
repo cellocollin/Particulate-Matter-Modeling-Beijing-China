@@ -147,26 +147,31 @@ Rain is also infrequent but there are times when there is a lot of rain so we ma
 
 The most common direction is SE and NW while sometimes NE or CV
 
-Now that we know the distributions we can take a look at some pm2.5 vs predictor and also look at how correlated the three dew precipitation and temp are related
+Now that we know the distributions we can take a look at some pm2.5 vs predictor
 ```{r echo =FALSE,warning=FALSE}
 #par(mfrow=c(3,3))
 Pollution_Daily
 Sys.setenv( lang = 'EN' )
-tempdew <- lm(Pollution_Daily$Avg_Day_DEWP  ~ Pollution_Daily$Avg_Day_TEMP)
-temppres <- lm(Pollution_Daily$Avg_Day_PRES ~ Pollution_Daily$Avg_Day_TEMP)
+#tempdew <- lm(Pollution_Daily$Avg_Day_DEWP  ~ Pollution_Daily$Avg_Day_TEMP)
+#temppres <- lm(Pollution_Daily$Avg_Day_PRES ~ Pollution_Daily$Avg_Day_TEMP)
 plot(1:1826,Pollution_Daily$Avg_Day_PM2.5,type='l',xlab='day')
-plot(Pollution_Daily$Avg_Day_TEMP,Pollution_Daily$Avg_Day_DEWP,xlab='day')
-abline(tempdew)
-plot(Pollution_Daily$Avg_Day_TEMP,Pollution_Daily$Avg_Day_PRES,xlab='day')
-abline(temppres)
 
-plot(1:1826,Pollution_Daily$Avg_Day_TEMP,type="l",xlab="day")
-plot(1:1826,Pollution_Daily$Avg_Day_DEWP,type='l',xlab='day')
-plot(1:1826,Pollution_Daily$Avg_Day_PRES,type='l',xlab='day')
 ```
-We see that pm2.5 varies in a slightly seasonal way in that peaks are near the start of year while dew point and temperature all peak in middle and precipitation peak during beginning with snow - wind speed also are near the time period
+we can see pm2.5 against time is not a clear relationship and there are many seasonal spikes - One thing is that since there are random fluctations in our final model we will not use date since in a regression model the advance of one day would theoretically advance pm2.5 which is not the relationship we see
 
-One thing is that since there are random fluctations in our final model we will not use date since in a regression model the advance of one day would theoretically advance pm2.5 which is not the relationship we see
+We can also extract that dew, temp, pres are very clearly related from the following:
+```{r}
+par(mfrow=c(2,2))
+plot(1:1826,Pollution_Daily$Avg_Day_TEMP,type="l",xlab="day",ylab='temp')
+plot(1:1826,Pollution_Daily$Avg_Day_DEWP,type='l',xlab='day',ylab='dew')
+plot(1:1826,Pollution_Daily$Avg_Day_PRES,type='l',xlab='day',ylab='pres')
+plot(Pollution_Daily$Max_Day_LWS , Pollution_Daily$Avg_Day_PM2.5,xlab='max wind' , ylab='2.5')
+```
+Dew and temp are very similar and pres is the opposite so we may not necessarily need all three in the final model 
+
+Max wind is also related to Avg_Day_PM2.5 since more wind produces less 2.5
+
+
 
 At first glance it may seem that pm2.5 may not vary with month day or year since there are a lot of random spike but looking at a mean of all pm2.5 with each factor shows us that it indeed is influenced highly by these predictor
 ```{r echo=FALSE}
