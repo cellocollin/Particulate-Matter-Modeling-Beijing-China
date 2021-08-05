@@ -190,7 +190,7 @@ figure
 ```
 We see that pm2.5 varies in a slightly seasonal way in that peaks are near the start of year while dew point and temperature all peak in middle and precipitation peak during beginning with snow - wind speed also are near the time period
 
-One thing that we can do also is based on common sense, we can predict that PM2.5 will not vary greatly with the day, month or year as we see that the pm2.5 time series is mostly random spikes with a mean of 200 about so let us see the day month and year
+At first glance it may seem that pm2.5 may not vary with month day or year since there are a lot of random spike but looking at a mean of all pm2.5 with each factor shows us that it indeed is influenced highly by these predictor
 ```{r echo=FALSE}
 pmday=ggplot(Pollution_Daily,aes(Day,Avg_Day_PM2.5))+
 geom_line() 
@@ -218,7 +218,7 @@ plot(1:12 , month2.5 , type = "h" , xlab="month" , ylab='pm2.5 avg '
 plot(2010 : 2014, year2.5, type='h' , xlab='year' , ylab='pm2.5 avg')
 plot(1:31 , day2.5, type='h' , xlab='day' , ylab= ' pm2.5 avg')
 ```
-
+As we see the variation between the month year and day is important and vary so therefore for the sake of fitting a model between these years every variable will be important
 ```{r , echo = FALSE }
 ##Fitting Full Model
 lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
