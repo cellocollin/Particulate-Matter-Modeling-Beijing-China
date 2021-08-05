@@ -79,34 +79,41 @@ str(Pollution_Daily)
 summary(Pollution_Daily)
 # Daily Plots
 
- ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
-  geom_line()
- ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
-  geom_line() 
-ggplot(Pollution_Daily, aes(Date_D, Avg_Day_TEMP)) +
-  geom_line()
-ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PRES)) +
-  geom_line()
-ggplot(Pollution_Daily, aes(Date_D, Max_Day_LWS)) +
-  geom_line()
-ggplot(Pollution_Daily, aes(Date_D, Max_Day_LS)) +
-  geom_line()
-ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
-  geom_line()
+ #ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
+  #geom_line()
+ #ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
+  #geom_line() 
+#ggplot(Pollution_Daily, aes(Date_D, Avg_Day_TEMP)) +
+  #geom_line()
+#ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PRES)) +
+  #geom_line()
+#ggplot(Pollution_Daily, aes(Date_D, Max_Day_LWS)) +
+  #geom_line()
+#ggplot(Pollution_Daily, aes(Date_D, Max_Day_LS)) +
+  #geom_line()
+#ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
+  #geom_line()
 #Use functions year, month and day to create Year, Month and Day Columns
+#Pollution_Daily$Year=year(Pollution_Daily$Date_D)
+#Pollution_Daily$Month=month(Pollution_Daily$Date_D)
+#Pollution_Daily$Day=day(Pollution_Daily$Date_D)
+#head(Pollution_Daily)
+#Fix NaN values in PM2.5 and set to NAs
+#Pollution_Daily$Avg_Day_PM2.5[is.nan(Pollution_Daily$Avg_Day_PM2.5)]<-NA
+#Pollution_Daily
+#Train test
+
+Pollution_Daily <- read.csv("pollutiondaily.csv",header=TRUE)
+Pollution_Daily
 Pollution_Daily$Year=year(Pollution_Daily$Date_D)
 Pollution_Daily$Month=month(Pollution_Daily$Date_D)
 Pollution_Daily$Day=day(Pollution_Daily$Date_D)
-head(Pollution_Daily)
-#Fix NaN values in PM2.5 and set to NAs
 Pollution_Daily$Avg_Day_PM2.5[is.nan(Pollution_Daily$Avg_Day_PM2.5)]<-NA
 Pollution_Daily
-#Train test
 Pollution_Daily.test=Pollution_Daily[seq(1,nrow(Pollution_Daily),5), ]
 Pollution_Daily.train = Pollution_Daily[-seq(1, nrow(Pollution_Daily) , 5 ) , ]
 Pollution_Daily.test
 
-Pollution$CBWD
 ```
 ```{r echo=FALSE}
 Pollution_Daily_nona<-na.omit(Pollution_Daily)
@@ -117,6 +124,8 @@ num_cols <- unlist(lapply(Pollution_Daily_nona, is.numeric))
 nump=Pollution_Daily_nona [ , num_cols ]
 
 ggcorrplot(cor(nump))
+
+
 ```
 Looking at a correlation heatmap we see aside from dewpoint precipitation and temperature there are no significant correlation in other variable
 
@@ -153,9 +162,13 @@ The most common direction is SE and NW while sometimes NE or CV
 
 ```{r echo =FALSE,warning=FALSE}
 #par(mfrow=c(3,3))
+Pollution_Daily
+Sys.setenv( lang = 'EN' )
 
-pm=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
-  geom_line()
+plot(1:1789,Pollution_Dailynona$Avg_Day_PM2.5)
+Pollution_Daily
+pm=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +geom_line()
+  
  dew=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
   geom_line() 
 temp=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_TEMP)) +
@@ -172,7 +185,8 @@ figure=ggarrange(ncol=3,nrow=3,pm,dew,temp,pres,lws,ls,lr)
 #figure
 #not show
 options(warn=-1)
-suppressMessages(print(figure))
+figure
+
 ```
 We see that pm2.5 varies in a slightly seasonal way in that peaks are near the start of year while dew point and temperature all peak in middle and precipitation peak during beginning with snow - wind speed also are near the time period
 
