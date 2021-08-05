@@ -79,20 +79,7 @@ str(Pollution_Daily)
 summary(Pollution_Daily)
 # Daily Plots
 
- #ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +
-  #geom_line()
- #ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
-  #geom_line() 
-#ggplot(Pollution_Daily, aes(Date_D, Avg_Day_TEMP)) +
-  #geom_line()
-#ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PRES)) +
-  #geom_line()
-#ggplot(Pollution_Daily, aes(Date_D, Max_Day_LWS)) +
-  #geom_line()
-#ggplot(Pollution_Daily, aes(Date_D, Max_Day_LS)) +
-  #geom_line()
-#ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
-  #geom_line()
+
 #Use functions year, month and day to create Year, Month and Day Columns
 #Pollution_Daily$Year=year(Pollution_Daily$Date_D)
 #Pollution_Daily$Month=month(Pollution_Daily$Date_D)
@@ -103,8 +90,9 @@ summary(Pollution_Daily)
 #Pollution_Daily
 #Train test
 
-Pollution_Daily <- read.csv("pollutiondaily.csv",header=TRUE)
-Pollution_Daily
+
+Pollution_Daily<-read.table('Pollution_Daily.csv',header=TRUE)
+Pollution_Daily <- as.data.frame(Pollution_Daily)
 Pollution_Daily$Year=year(Pollution_Daily$Date_D)
 Pollution_Daily$Month=month(Pollution_Daily$Date_D)
 Pollution_Daily$Day=day(Pollution_Daily$Date_D)
@@ -112,7 +100,6 @@ Pollution_Daily$Avg_Day_PM2.5[is.nan(Pollution_Daily$Avg_Day_PM2.5)]<-NA
 Pollution_Daily
 Pollution_Daily.test=Pollution_Daily[seq(1,nrow(Pollution_Daily),5), ]
 Pollution_Daily.train = Pollution_Daily[-seq(1, nrow(Pollution_Daily) , 5 ) , ]
-Pollution_Daily.test
 
 ```
 ```{r echo=FALSE}
@@ -156,39 +143,30 @@ Wind speed is similar but not identical to PM2.5 in that it has an inverse distr
 
 There is almost always not any snow in Beijing and the max is 27 for a day
 
-Rain is also infrequent but there are times when there is a lot of rain
+Rain is also infrequent but there are times when there is a lot of rain so we may assume that rain and snow are not the same
 
 The most common direction is SE and NW while sometimes NE or CV
 
+Now that we know the distributions we can take a look at some pm2.5 vs predictor and also look at how correlated the three dew precipitation and temp are related
 ```{r echo =FALSE,warning=FALSE}
 #par(mfrow=c(3,3))
 Pollution_Daily
 Sys.setenv( lang = 'EN' )
+tempdew <- lm(Pollution_Daily$Avg_Day_DEWP  ~ Pollution_Daily$Avg_Day_TEMP)
+temppres <- lm(Pollution_Daily$Avg_Day_PRES ~ Pollution_Daily$Avg_Day_TEMP)
+plot(1:1826,Pollution_Daily$Avg_Day_PM2.5,type='l',xlab='day')
+plot(Pollution_Daily$Avg_Day_TEMP,Pollution_Daily$Avg_Day_DEWP,xlab='day')
+abline(tempdew)
+plot(Pollution_Daily$Avg_Day_TEMP,Pollution_Daily$Avg_Day_PRES,xlab='day')
+abline(temppres)
 
-plot(1:1789,Pollution_Dailynona$Avg_Day_PM2.5)
-Pollution_Daily
-pm=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PM2.5)) +geom_line()
-  
- dew=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_DEWP)) +
-  geom_line() 
-temp=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_TEMP)) +
-  geom_line()
-pres=ggplot(Pollution_Daily, aes(Date_D, Avg_Day_PRES)) +
-  geom_line()
-lws=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LWS)) +
-  geom_line()
-ls=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LS)) +
-  geom_line()
-lr=ggplot(Pollution_Daily, aes(Date_D, Max_Day_LR)) +
-  geom_line()
-figure=ggarrange(ncol=3,nrow=3,pm,dew,temp,pres,lws,ls,lr)
-#figure
-#not show
-options(warn=-1)
-figure
-
+plot(1:1826,Pollution_Daily$Avg_Day_TEMP,type="l",xlab="day")
+plot(1:1826,Pollution_Daily$Avg_Day_DEWP,type='l',xlab='day')
+plot(1:1826,Pollution_Daily$Avg_Day_PRES,type='l',xlab='day')
 ```
 We see that pm2.5 varies in a slightly seasonal way in that peaks are near the start of year while dew point and temperature all peak in middle and precipitation peak during beginning with snow - wind speed also are near the time period
+
+One thing is that since there are random fluctations in our final model we will not use date since in a regression model the advance of one day would theoretically advance pm2.5 which is not the relationship we see
 
 At first glance it may seem that pm2.5 may not vary with month day or year since there are a lot of random spike but looking at a mean of all pm2.5 with each factor shows us that it indeed is influenced highly by these predictor
 ```{r echo=FALSE}
@@ -218,10 +196,12 @@ plot(1:12 , month2.5 , type = "h" , xlab="month" , ylab='pm2.5 avg '
 plot(2010 : 2014, year2.5, type='h' , xlab='year' , ylab='pm2.5 avg')
 plot(1:31 , day2.5, type='h' , xlab='day' , ylab= ' pm2.5 avg')
 ```
-As we see the variation between the month year and day is important and vary so therefore for the sake of fitting a model between these years every variable will be important
+As we see the variation between the month year and day is important and vary so therefore for the sake of fitting a model between these years every variable will be important beside Date_D
 ```{r , echo = FALSE }
 ##Fitting Full Model
-lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train)
+
+lm_all=lm(Avg_Day_PM2.5~.-Date_D,data=Pollution_Daily.train)
+lm_all
 testpm=predict(lm_all , Pollution_Daily.test)
 #visually test
 summary(lm_all)
