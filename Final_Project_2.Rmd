@@ -330,12 +330,7 @@ Taking a glance at our linear model, we see that it does not appear to meet all 
 
 
 ```{r echo=FALSE}
-##test_error_assumptions(lm_all_2)
-##Testing Homocedasticity
 
-##Testing Normality
-
-##Testing Uncorrelated Errors
 
 diagnosticdata <- as.data.frame(matrix(ncol=1+2,nrow=1))
 colnames(diagnosticdata) <- c('bptest p' , 'shapiro test p' , 'durbin watson p')
@@ -374,74 +369,66 @@ test_outlier(lm_all)
 ```
 As we can see above, we also have four outliers in the dataset.
 
-So in order to remedy non linearity, heteroscedasticity, non normal residual and autocorrelation we can do a variety of transformations
+All things aside in order to remedy non linearity, heteroscedasticity, non normal residual and autocorrelation we can apply a Boxcox transformation first for non linearity and making normally distributed residual:
 
-The first we can do is Boxcox for normal residual and linearity
 
-```{r echo=FALSE}
-##Remove Outliers-Note that with the rows we must be mindful we removed one in five values from the train data.  We must multiply our outlier residuals by 4/5 and round down to the nearest integer.
-boxcox(lm_all)
-
-```
-
-This is the boxcox likelihood for lambda and we see that lambda is maximized at 0.14 so that will be the transformation we use
-```{r echo=FALSE}
-test_outlier(lm_all)
-```
 
 ```{r echo=FALSE}
-boxcox(lm_all,plotit=T)
-par(mfrow=c(2,2))
-bc=boxcox(lm_all);
+bc=boxcox(lm_all,plotit = TRUE)
 lambda=bc$x[which.max(bc$y)]
-lmbox <-lm((Avg_Day_PM2.5^lambda-1)/lambda ~. , data = trainingdate)
-summary(lmbox)
-diagnosticdata <- as.data.frame(matrix(ncol=1+2,nrow=1))
-colnames(diagnosticdata) <- c('bptest p' , 'shapiro test p' , 'durbin watson p')
+print(lambda)
+```
 
-diagnosticdata[,1] <- bptest(lmbox)[4]
-diagnosticdata[,2]<-shapiro.test(residuals(lmbox))[2]
-diagnosticdata[,3]<-dwtest(lmbox)[4]
+This is the boxcox likelihood for lambda and we see that lambda is maximized at 0.1 so that will be the transformation we use
+
+Next we fit the model with the boxcox transformation which involves applying the transformation responseNew=(responseOld^lambda-1)/lambda
+
+
+```{r echo=FALSE}
+
+par(mfrow=c(2,2))
+
+lmbox <-lm((Avg_Day_PM2.5^lambda-1)/lambda ~. , data = trainingdate)
+
+diagnosticdata <- as.data.frame(matrix(ncol=1+1+2,nrow=1))
+colnames(diagnosticdata) <- c( 'R-square value' , 'bptest p' , 'shapiro test p' , 'durbin watson p')
+diagnosticdata[,1+1] <- bptest(lmbox)[4]
+diagnosticdata[,2+1]<-shapiro.test(residuals(lmbox))[2]
+diagnosticdata[,3+1]<-dwtest(lmbox)[4]
+diagnosticdata[,1]<-summary(lmbox)[8]
 diagnosticdata
 ```
 
-The shapiro wilk shows that normality has been improved by a lot and data is more homoscedastic.
+The shapiro wilk shows that normality has been improved by a lot and data is more homoscedastic even though it is still very heteroskedastic and residual correlated. The better part is that R squared increased by nearly 0.1 which is relatively very large and means the model has improved in explanation of variation of the response.
+
+So our explanation of variation improved but there is still steep autocorrelation and heteroscedasticity - we could combine Generalised Least Squares with correlated error to our Boxcox transformed data for the first one and try a different model with OLS and the Boxcox transformation and evaluate the performance of both model:
 
 ```{r echo=FALSE}
 ##Fitting BoxCox model
-general = gls((Avg_Day_PM2.5^.141414-1)/.14141414~., correlation = corAR1(form=~1:1460), data=na.omit(trainingdate))
-#install.packages("nlme"
-summary(lm_all)
-shapiro.test(residuals(general))
+general = gls((Avg_Day_PM2.5^.101-1)/.101~., correlation = corAR1(form=~1:1460), data=na.omit(trainingdate))
 summary(general)
+#cant have na's
 nonatest=na.omit(Pollution_Daily.test)
 nonatest[,2]
-testpm=predict(lm_all , nonatest)
-testpm
-testpm
+#function to reverse the boxcox transformation
 invBoxCox <- function(x, lambda)
     		if (lambda == 0) exp(x) else (lambda*x + 1)^(1/lambda)
-noboxgen <- gls(Avg_Day_PM2.5 ~., correlation=corARMA(p=1) , data = na.omit(trainingdate));summary(noboxgen)
-testnoboxgen =predict(noboxgen , nonatest)
-testgen=predict(general,na.omit(Pollution_Daily.test [ , -1 ] ) )
-testbox=predict(lmbox,nonatest)
-testbox
-nonatest
-newgeneralmodel = gls((Avg_Day_PM2.5^.141414-1)/.141414~Max_Day_LR+Max_Day_LS+Max_Day_LWS+Avg_Day_PRES+Avg_Day_TEMP+Avg_Day_DEWP+Month+Day , data=na.omit(trainingdate) , correlation=corAR1(form=~1:1460))
-summary(newgeneralmodel)
-testnewgeneralmodel <- predict(newgeneralmodel,nonatest)
+
+row.names(nonatest)<-NULL
+#prediction on testing for gls model and compare to lm_all
+testgeneral=predict(general,nonatest)
+testpm=predict(lm_all,nonatest)
+
+
 for (k in 1:366)
 {
-  testnewgeneralmodel[k] <- invBoxCox(testnewgeneralmodel[k] , lambda );testgen[k]=invBoxCox(testgen[k] , lambda )
-  testbox[k]=invBoxCox(testbox[k] , lambda )
+  testgeneral[k]=invBoxCox(testgeneral[k] , lambda )
 }
-testgen=testgen[-(356:366)]
-testnewgeneralmodel=testnewgeneralmodel[-(356:366)]
-data.frame(
-rmse(na.omit( Pollution_Daily.test[ , 2 ] ) ,testgen) , rmse(testpm,nonatest[,2])
-,rmse(testbox,nonatest[,2]),rmse(testnoboxgen,nonatest[,2])
-,rmse(testnewgeneralmodel,nonatest[,2]))
-plot(newgeneralmodel)
+
+
+rmse(nonatest[,2],testgeneral)
+
+
 lm32=lm( Avg_Day_PM2.5~.-(Year+Max_Day_CBWD) , data = trainingdate)
 bc=boxcox(lm32)
 lambda=bc$x[which.max(bc$y)]
@@ -460,8 +447,8 @@ g = gls(Avg_Day_PM2.5~.-Date_D, correlation = corARMA(p=1), data=na.omit(Polluti
 lm33=lm((Avg_Day_PM2.5^lambda-1)/lambda ~.-(Year+Max_Day_CBWD) , data = trainingdate)
 lm32=lm( Avg_Day_PM2.5~.-(Year+Max_Day_CBWD) , data = trainingdate)
 bc=boxcox(lm32)
-lambda=bc$x[which.max(bc$y)]
-lambda;lm33=lm((Avg_Day_PM2.5^lambda-1)/lambda ~Max_Day_LR+Max_Day_LS+Max_Day_LWS+Avg_Day_PRES+Avg_Day_TEMP+Avg_Day_DEWP+Month+Day  , data = trainnooutlier)
+Pollution_Daily.test
+lambda;lm33=lm((Avg_Day_PM2.5^lambda-1)/lambda ~Max_Day_LR+Max_Day_LS+Max_Day_LWS+Avg_Day_PRES+Avg_Day_TEMP+Avg_Day_DEWP+Month+Day  , data = trainingdate)
 dim(trainingdate);dim(trainnooutlier)
 dwtest(lm33)
 shapiro.test(residuals(lm33))
