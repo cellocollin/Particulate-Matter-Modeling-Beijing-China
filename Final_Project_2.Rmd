@@ -405,7 +405,7 @@ So our explanation of variation improved but there is still steep autocorrelatio
 
 ```{r echo=FALSE}
 ##Fitting BoxCox model
-general = gls((Avg_Day_PM2.5^.101-1)/.101~., correlation = corAR1(form=~1:1460), data=na.omit(trainingdate))
+general = gls((Avg_Day_PM2.5^.101-1)/.101~., correlation = corAR1(form=~1:1460), data=na.omit(trainingdate),method="ML")
 summary(general)
 #cant have na's
 nonatest=na.omit(Pollution_Daily.test)
@@ -416,18 +416,35 @@ invBoxCox <- function(x, lambda)
 
 row.names(nonatest)<-NULL
 #prediction on testing for gls model and compare to lm_all
+nonatest[,2]
+
+testgeneral
+
 testgeneral=predict(general,nonatest)
 testpm=predict(lm_all,nonatest)
+testbox=predict(lmbox,nonatest)
 
-
-for (k in 1:366)
+for (k in 1:355)
 {
-  testgeneral[k]=invBoxCox(testgeneral[k] , lambda )
+  testgeneral[k]=invBoxCox(testgeneral[k] , lambda );testbox[k]=invBoxCox(testbox[k],lambda)
 }
 
+testgeneral
 
-rmse(nonatest[,2],testgeneral)
+rmsetable=data.frame(rmse(nonatest[,2],testbox),rmse(nonatest[,2],testgeneral) ,
+rmse(nonatest[,2],testpm))
+colnames(rmsetable)<-c("transormed only r-mse" ,"GLS Transformed r-mse" , "original model r-mse")
+rmsetable
+intervals(general)[2]
+```
 
+As we can see after applying a Generalised Least Square with correlated error with boxcox transformation we have an rmse of 58, which is higher than the original model with every predictor and higher than the transformed only root mean square error. Also we see that we cannot reject the null hypothesis of residual being correlated since the lower bound of Phi which is the correlation variable does not include 0 which is what we would need to reject the null hypothesis. This suggests that GLS may not be the best model for this data since there is still correlation and the r-mse is higher than OLS
+
+Therefore, it may be a good idea to stick with OLS for the sake of fitting a parametric model in this dataset. We noticed that in the GLS model there were two insignificant predictors which were wind direction as a factor and 
+
+```{r}
+
+```
 
 lm32=lm( Avg_Day_PM2.5~.-(Year+Max_Day_CBWD) , data = trainingdate)
 bc=boxcox(lm32)
@@ -439,7 +456,7 @@ bptest(lm33)
 res <- residuals(general)
 res[1:1434]
 
- ```
+```
 
 ```{r echo=FALSE}
 g = gls(Avg_Day_PM2.5~.-Date_D, correlation = corARMA(p=1), data=na.omit(Pollution_Daily.train.new))
