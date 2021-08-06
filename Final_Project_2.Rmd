@@ -413,24 +413,26 @@ general = gls((Avg_Day_PM2.5^.1-1)/.1~., correlation = corAR1(form=~1:1460), dat
 #install.packages("nlme")
 shapiro.test(residuals(general))
 
-
-
-
-
+nonatest=na.omit(Pollution_Daily.test)
+nonatest[,2]
+testpm=predict(lm_all , nonatest)
+testpm
 invBoxCox <- function(x, lambda)
     		if (lambda == 0) exp(x) else (lambda*x + 1)^(1/lambda)
 
-testgen=predict(general,Pollution_Daily.test [ , - c(1,2) ] )
-
+testgen=predict(general,na.omit(Pollution_Daily.test [ , -1 ] ) )
+testbox=predict(lmbox,nonatest)
 for (k in 1:366)
 {
-  testgen[k]=invBoxCox(testgen[k] , lambda)
+  testgen[k]=invBoxCox(testgen[k] , lambda )
+  testbox[k]=invBoxCox(testbox[k] , lambda )
 }
 plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
-data.frame(rmse(Pollution_Daily.test[,2] , testgen),
-rmse(Pollution_Daily.test[,2] , testpm))
-rmse(predict(general,Pollution_Daily.test [ , - 1 ]  ) , na.omit( Pollution_Daily.test[ , 2 ] ))
+data.frame(
+rmse(na.omit( Pollution_Daily.test[ , 2 ] ) ,testgen) , rmse(testpm,nonatest[,2])
+)
+
 
  ```
 
