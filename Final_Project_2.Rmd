@@ -34,7 +34,7 @@ library(faraway)
 library(lmtest)
 library(nlme)
 library(MASS)
-
+library(Metrics)
 ```
 
 
@@ -208,8 +208,8 @@ We can fit a multiple linear regression with response Avg_Day_PM and predictor b
 trainingdate <- Pollution_Daily.train [ , - 1 ]
 lm_all=lm(Avg_Day_PM2.5~.,data=trainingdate)
 row.names(Pollution_Daily.test) <- NULL
-
-testpm=predict.lm(lm_all , Pollution_Daily.test [ , -1 ] )
+Pollution_Daily.test
+testpm=predict(lm_all , Pollution_Daily.test [ , -1 ] )
 
 #visually test
 #summary(lm_all)
@@ -409,11 +409,12 @@ The shapiro wilk shows that normality has been improved by a lot and data is mor
 ```{r echo=FALSE}
 ##Fitting BoxCox model
 general = gls((Avg_Day_PM2.5^.1-1)/.1~., correlation = corAR1(form=~1:1460), data=na.omit(trainingdate))
-
+#install.packages("nlme")
 shapiro.test(residuals(general))
-plot.gls(general)
-
-
+plot.gl
+library(nlme)
+summary(general)
+predict(general,na.omit(Pollution_Daily.test [ , - 1 ] ))
 ```
 
 ```{r echo=FALSE}
