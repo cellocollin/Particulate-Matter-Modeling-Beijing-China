@@ -430,9 +430,9 @@ plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
 data.frame(rmse(Pollution_Daily.test[,2] , testgen),
 rmse(Pollution_Daily.test[,2] , testpm))
-testgen
-Pollution_Daily.test[,2]
-```
+rmse(predict(general,Pollution_Daily.test [ , - 1 ]  ) , na.omit( Pollution_Daily.test[ , 2 ] ))
+
+ ```
 
 ```{r echo=FALSE}
 g = gls(Avg_Day_PM2.5~.-Date_D, correlation = corARMA(p=1), data=na.omit(Pollution_Daily.train.new))
