@@ -202,6 +202,8 @@ plot(2010 : 2014, year2.5, type='h' , xlab='year' , ylab='pm2.5 avg')
 plot(1:31 , day2.5, type='h' , xlab='day' , ylab= ' pm2.5 avg')
 ```
 As we see the variation between the month year and day is important and vary so therefore for the sake of fitting a model between these years every variable will be important beside Date_D
+
+**3.1: Fitting model and diagnostic**
 ```{r , echo = FALSE }
 ##Fitting Full Model
 trainingdate <- Pollution_Daily.train [ , - 1 ]
@@ -218,8 +220,9 @@ summary(lm_all)$coefficients[,4]
 summary(lm_all)[8]
 
 ```
-After fitting a full model we see every single predictor is significant however R square is only 0.4 which suggests even though each coefficient is directionally correct the variation of response is not accurate
+After fitting a full model we see every single predictor besides year is significant however R square is only 0.4 which suggests even though each coefficient is directionally correct the variation of response is not accurate
 
+We can see some diagnostics as to why our model may not be that effective
 ```{r}
 #partialregress
 
@@ -279,7 +282,9 @@ abline(tmpmonth)
 plot(r.day,r.yday,xlab="day residual",ylab=titles)
 abline(tmpday)
 ```
-**Section 3: Methods**
+We see that there are a lot of high influence points in partial regression for each numerical variable 
+
+
 ```{r include=FALSE}
 ##Functions to make Diagnostics Easier
 test_error_assumptions<-function(x){
@@ -313,12 +318,8 @@ test_influence<-function(x){
   return(a)
 }
 ```
+We can check some numerical tests to determine errors in assumptions, such as constant variance, normality of residual and uncorrelated error
 
-```{r echo=FALSE}
-##Sequential Anova
-anova(lm_all)$Pr
-```
-Through sequential anova we can determine that our predictor variable Date_D is not significant, therefore we can remove it.  
 
 ```{r echo=FALSE}
 lm_all_2=lm(Avg_Day_PM2.5~.-Date_D,data=Pollution_Daily.train)
