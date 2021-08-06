@@ -204,8 +204,8 @@ plot(1:31 , day2.5, type='h' , xlab='day' , ylab= ' pm2.5 avg')
 As we see the variation between the month year and day is important and vary so therefore for the sake of fitting a model between these years every variable will be important beside Date_D
 ```{r , echo = FALSE }
 ##Fitting Full Model
-
-lm_all=lm(Avg_Day_PM2.5~.,data=Pollution_Daily.train [ , -1 ])
+trainingdate <- Pollution_Daily.train [ , - 1 ]
+lm_all=lm(Avg_Day_PM2.5~.,data=trainingdate)
 row.names(Pollution_Daily.test) <- NULL
 
 testpm=predict.lm(lm_all , Pollution_Daily.test [ , -1 ] )
@@ -222,43 +222,44 @@ After fitting a full model we see every single predictor is significant however 
 
 ```{r}
 #partialregress
+
+
 r.ydew=update(lm_all , ~. - Avg_Day_DEWP)$res
-nonatrain <- na.omit(Pollution_Daily.train)
-r.dew=lm(Avg_Day_DEWP ~ . , data = nonatrain[ , - 2 ])$res
+nonatrain <- na.omit(trainingdate)
+r.dew=lm(Avg_Day_DEWP ~ . , data = nonatrain[ , - 1 ])$res
 tmp=lm(r.ydew ~ r.dew )
 
-
+tmp
 r.ytemp=update(lm_all , ~. -Avg_Day_TEMP)$res
-r.temp=lm(Avg_Day_TEMP ~ . , data = nonatrain [ , -2 ])$res
+r.temp=lm(Avg_Day_TEMP ~ . , data = nonatrain [ , -1 ])$res
 tmptemp=lm(r.ytemp~r.temp)
 r.ypres=update(lm_all ,~. - Avg_Day_PRES)$res
-r.pres=lm(Avg_Day_PRES ~. , data=nonatrain[,-2])$res
+r.pres=lm(Avg_Day_PRES ~. , data=nonatrain[,-1])$res
 tmppres=lm(r.ypres~r.pres)
 r.ylws=update(lm_all,~. -Max_Day_WLS)$res
-r.lws=lm(Max_Day_LWS ~.,data=nonatrain[,-2])$res
+r.lws=lm(Max_Day_LWS ~.,data=nonatrain[,-1])$res
 tmplws=lm(r.ylws~r.lws)
 r.yls <- update(lm_all,~. -Max_Day_LS)$res
-r.ls <- lm( Max_Day_LS ~. , data= nonatrain [ ,-2 ])$res
+r.ls <- lm( Max_Day_LS ~. , data= nonatrain [ ,-1 ])$res
 tmpls <- lm(r.yls~r.ls)
 r.ylr <- update(lm_all ,~. - Max_Day_LR)$res
-r.lr <- lm(Max_Day_LR ~.,data = nonatrain[ , -2 ] )$res
+r.lr <- lm(Max_Day_LR ~.,data = nonatrain[ , -1 ] )$res
 tmplr <- lm(r.ylr ~ r.lr )
 r.yyear = update (lm_all,~.-Year)$res
-r.year=lm(Year~.,data=nonatrain[ , -2 ] )$res
+r.year=lm(Year~.,data=nonatrain[ , -1 ] )$res
 tmpyear=lm(r.yyear~r.year)
 r.ymonth = update (lm_all,~.-Month)$res
-r.month = lm(Month~.,data=nonatrain[,-2])$res
+r.month = lm(Month~.,data=nonatrain[,-1])$res
 tmpmonth=lm(r.ymonth~r.month)
 r.yday=update(lm_all,~.-Day)$res
-r.day=lm(Day~.,data=nonatrain[,-2])$res
+r.day=lm(Day~.,data=nonatrain[,-1])$res
 tmpday=lm(r.yday~r.day)
 #5x2 to show each
 par(mfrow=c(2,5))
 plot(r.dew,r.ydew,xlab="dew residual",ylab="Pollution residual")
 abline(tmp)
-titles="Pollution residual"
-plot(r.date,r.ydate,xlab="date residual",ylab=titles)
-abline(tmpdate)
+
+
 plot(r.temp,r.ytemp,xlab="temp residual",ylab=titles)
 abline(tmptemp)
 plot(r.pres,r.ypres,xlab="pres residual",ylab= titles)
