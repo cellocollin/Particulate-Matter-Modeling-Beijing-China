@@ -215,6 +215,7 @@ testpm=predict(lm_all , Pollution_Daily.test [ , -1 ] )
 #summary(lm_all)
 plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
+
 summary(lm_all)$coefficients[,4]
 summary(lm_all)[8]
 
@@ -411,10 +412,25 @@ The shapiro wilk shows that normality has been improved by a lot and data is mor
 general = gls((Avg_Day_PM2.5^.1-1)/.1~., correlation = corAR1(form=~1:1460), data=na.omit(trainingdate))
 #install.packages("nlme")
 shapiro.test(residuals(general))
-plot.gl
-library(nlme)
-summary(general)
-predict(general,na.omit(Pollution_Daily.test [ , - 1 ] ))
+
+
+
+
+
+invBoxCox <- function(x, lambda)
+    		if (lambda == 0) exp(x) else (lambda*x + 1)^(1/lambda)
+
+testgen=predict(general,Pollution_Daily.test [ , - c(1,2) ] )
+
+for (k in 1:366)
+{
+  testgen[k]=invBoxCox(testgen[k] , lambda)
+}
+plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
+lines( c(1:366),Pollution_Daily.test[,2])
+data.frame(rmse(Pollution_Daily.test[,2] , testgen),
+rmse(Pollution_Daily.test[,2] , testpm))
+
 ```
 
 ```{r echo=FALSE}
