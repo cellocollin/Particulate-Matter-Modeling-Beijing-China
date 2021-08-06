@@ -480,15 +480,19 @@ Pollution_Daily.test
 lm_all
 bc=boxcox(lm_all)
 lambda=bc$x[which.max(bc$y)]
-v <- residuals(general)
+v <- residuals(newgeneralmodel)
 attr(v,"std") <- NULL      # get rid of the additional attribute
-car::durbinWatsonTest( v )
+v=as.vector(v);car::durbinWatsonTest( v )
 options(max.print=100000)
-v=as.vector(v)
-
+bptest(general)
+test_error_assumptions(newgeneralmodel)
+test_influence(newgeneralmodel)
+test_leverage(newgeneralmodel)
+test_outlier(newgeneralmodel)
+summary(general)
 row.names(nonatest) <- NULL
 testmodel <- predict(lm33,nonatest)
-testmodel
+intervals(general)
 shapiro.test(residuals(newgeneralmodel));dwtest(lm_all)
 ```
 
