@@ -492,6 +492,8 @@ test_outlier(newgeneralmodel)
 summary(general)
 row.names(nonatest) <- NULL
 testmodel <- predict(lm33,nonatest)
+gen = gls(Avg_Day_PM2.5~.,data=nonatrain)
+summary(gen)
 intervals(general)
 shapiro.test(residuals(newgeneralmodel));dwtest(lm_all)
 ```
