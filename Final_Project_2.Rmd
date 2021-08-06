@@ -149,27 +149,19 @@ The most common direction is SE and NW while sometimes NE or CV
 
 Now that we know the distributions we can take a look at some pm2.5 vs predictor
 
-```{r echo = FALSE , out.width="90%" , out.height = "75%"}
-#par(mfrow=c(3,3))
-#Pollution_Daily
 
-#tempdew <- lm(Pollution_Daily$Avg_Day_DEWP  ~ Pollution_Daily$Avg_Day_TEMP)
-#temppres <- lm(Pollution_Daily$Avg_Day_PRES ~ Pollution_Daily$Avg_Day_TEMP)
-plot(1:1826,Pollution_Daily$Avg_Day_PM2.5,type='l',xlab='day')
-
-```
-
-we can see pm2.5 against time is not a clear relationship and there are many seasonal spikes - One thing is that since there are random fluctations in our final model we will not use date since in a regression model the advance of one day would theoretically advance pm2.5 which is not the relationship we see
+The pm and time is not a clear relationship and there are many seasonal spikes - One thing is that since there are random fluctations in our final model we will not use date since in a regression model the advance of one day would theoretically advance pm2.5 which is not the relationship we see
 
 We can also extract that dew, temp, pres are very clearly related from the following:
 
-```{r echo=FALSE , out.width= "90%" , out.height="90%"}
+```{r echo=FALSE   , out.height="90%"}
 par(mfrow=c(2,2))
 plot(1:1826,Pollution_Daily$Avg_Day_TEMP,type="l",xlab="day",ylab='temp')
 plot(1:1826,Pollution_Daily$Avg_Day_DEWP,type='l',xlab='day',ylab='dew')
 plot(1:1826,Pollution_Daily$Avg_Day_PRES,type='l',xlab='day',ylab='pres')
-plot(Pollution_Daily$Max_Day_LWS , Pollution_Daily$Avg_Day_PM2.5,xlab='max wind' , ylab='2.5')
+plot(1:1826,Pollution_Daily$Avg_Day_PM2.5,type='l',xlab='day')
 ```
+
 Dew and temp are very similar and pres is the opposite so we may not necessarily need all three in the final model 
 
 Max wind is also related to Avg_Day_PM2.5 since more wind produces less 2.5
@@ -208,6 +200,9 @@ plot(1:31 , day2.5, type='h' , xlab='day' , ylab= ' pm2.5 avg')
 As we see the variation between the month year and day is important and vary so therefore for the sake of fitting a model between these years every variable will be important beside Date_D
 
 **3.1: Fitting model and diagnostic**
+
+We can fit a multiple linear regression with response Avg_Day_PM and predictor being every variable besides date and below we see the prediction in red on the testing (every 5th observation in the 5 year long data set) after fitting train
+
 ```{r , echo = FALSE }
 ##Fitting Full Model
 trainingdate <- Pollution_Daily.train [ , - 1 ]
@@ -217,7 +212,7 @@ row.names(Pollution_Daily.test) <- NULL
 testpm=predict.lm(lm_all , Pollution_Daily.test [ , -1 ] )
 
 #visually test
-summary(lm_all)
+#summary(lm_all)
 plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
 summary(lm_all)$coefficients[,4]
@@ -227,7 +222,7 @@ summary(lm_all)[8]
 After fitting a full model we see every single predictor besides year is significant however R square is only 0.4 which suggests even though each coefficient is directionally correct the variation of response is not accurate
 
 We can see some diagnostics as to why our model may not be that effective
-```{r}
+```{r echo=FALSE , out.width="90%" }
 #partialregress
 
 
@@ -236,7 +231,7 @@ nonatrain <- na.omit(trainingdate)
 r.dew=lm(Avg_Day_DEWP ~ . , data = nonatrain[ , - 1 ])$res
 tmp=lm(r.ydew ~ r.dew )
 
-tmp
+
 r.ytemp=update(lm_all , ~. -Avg_Day_TEMP)$res
 r.temp=lm(Avg_Day_TEMP ~ . , data = nonatrain [ , -1 ])$res
 tmptemp=lm(r.ytemp~r.temp)
@@ -326,10 +321,6 @@ test_influence<-function(x){
 Now we can check some of the plot of diagnostic
 
 
-```{r echo=FALSE}
-lm_all_2=lm(Avg_Day_PM2.5~.-Date_D,data=Pollution_Daily.train)
-```
-
 ```{r echo = FALSE }
 par(mfrow=c(2,2))
 plot(lm_all)
@@ -340,14 +331,18 @@ Taking a glance at our linear model, we see that it does not appear to meet all 
 ```{r echo=FALSE}
 ##test_error_assumptions(lm_all_2)
 ##Testing Homocedasticity
-bptest(lm_all)
-##Testing Normality
-shapiro.test(residuals(lm_all))
-##Testing Uncorrelated Errors
-dwtest(lm_all)
 
-plot(1:1434, summary(lm_all)$res, type='o')
-abline(h=0, lty=2, col="blue", lwd=2)
+##Testing Normality
+
+##Testing Uncorrelated Errors
+
+diagnosticdata <- as.data.frame(matrix(ncol=1+2,nrow=1))
+colnames(diagnosticdata) <- c('bptest p' , 'shapiro test p' , 'durbin watson p')
+
+diagnosticdata[,1] <- bptest(lm_all)[4]
+diagnosticdata[,2]<-shapiro.test(residuals(lm_all))[2]
+diagnosticdata[,3]<-dwtest(lm_all)[4]
+diagnosticdata
 ```
 As we can tell through testing more formally, none of the error assumptions of homocedasticity, normality, and uncorrelated errors are accurate.
 
@@ -378,7 +373,9 @@ test_outlier(lm_all)
 ```
 As we can see above, we also have four outliers in the dataset.
 
-So in order to remedy non linearity, heteroscedasticity, non normal residual and autocorrelation we would try to
+So in order to remedy non linearity, heteroscedasticity, non normal residual and autocorrelation we can do a variety of transformations
+
+The first we can do is Boxcox for normal residual and linearity
 
 ```{r echo=FALSE}
 ##Remove Outliers-Note that with the rows we must be mindful we removed one in five values from the train data.  We must multiply our outlier residuals by 4/5 and round down to the nearest integer.
@@ -386,6 +383,7 @@ boxcox(lm_all)
 
 ```
 
+This is the boxcox likelihood for lambda and we see that lambda is maximized at 0.14 so that will be the transformation we use
 ```{r echo=FALSE}
 test_outlier(lm_all)
 ```
@@ -395,17 +393,31 @@ boxcox(lm_all,plotit=T)
 par(mfrow=c(2,2))
 bc=boxcox(lm_all);
 lambda=bc$x[which.max(bc$y)]
+lmbox <-lm((Avg_Day_PM2.5^lambda-1)/lambda ~. , data = trainingdate)
+summary(lmbox)
+diagnosticdata <- as.data.frame(matrix(ncol=1+2,nrow=1))
+colnames(diagnosticdata) <- c('bptest p' , 'shapiro test p' , 'durbin watson p')
+
+diagnosticdata[,1] <- bptest(lmbox)[4]
+diagnosticdata[,2]<-shapiro.test(residuals(lmbox))[2]
+diagnosticdata[,3]<-dwtest(lmbox)[4]
+diagnosticdata
 ```
+
+The shapiro wilk shows that normality has been improved by a lot and data is more homoscedastic.
 
 ```{r echo=FALSE}
 ##Fitting BoxCox model
-#lm_all_4=lm((Avg_Day_PM2.5^lambda-1)/lambda~.-Date_D,data=Pollution_Daily.train.new)
-#summary(lm_all_4)
+general = gls((Avg_Day_PM2.5^.1-1)/.1~., correlation = corAR1(form=~1:1460), data=na.omit(trainingdate))
+
+shapiro.test(residuals(general))
+plot.gls(general)
+
 
 ```
 
 ```{r echo=FALSE}
-#g = gls(Avg_Day_PM2.5~.-Date_D, correlation = corARMA(p=1), data=na.omit(Pollution_Daily.train.new))
+g = gls(Avg_Day_PM2.5~.-Date_D, correlation = corARMA(p=1), data=na.omit(Pollution_Daily.train.new))
 #summary(g)
 ```
 
