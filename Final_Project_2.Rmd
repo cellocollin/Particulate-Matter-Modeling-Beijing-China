@@ -430,7 +430,8 @@ plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
 data.frame(rmse(Pollution_Daily.test[,2] , testgen),
 rmse(Pollution_Daily.test[,2] , testpm))
-
+testgen
+Pollution_Daily.test[,2]
 ```
 
 ```{r echo=FALSE}
