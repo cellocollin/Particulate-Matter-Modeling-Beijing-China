@@ -148,19 +148,22 @@ Rain is also infrequent but there are times when there is a lot of rain so we ma
 The most common direction is SE and NW while sometimes NE or CV
 
 Now that we know the distributions we can take a look at some pm2.5 vs predictor
-```{r echo =FALSE,warning=FALSE}
+
+```{r echo = FALSE , out.width="90%" , out.height = "75%"}
 #par(mfrow=c(3,3))
-Pollution_Daily
-Sys.setenv( lang = 'EN' )
+#Pollution_Daily
+
 #tempdew <- lm(Pollution_Daily$Avg_Day_DEWP  ~ Pollution_Daily$Avg_Day_TEMP)
 #temppres <- lm(Pollution_Daily$Avg_Day_PRES ~ Pollution_Daily$Avg_Day_TEMP)
 plot(1:1826,Pollution_Daily$Avg_Day_PM2.5,type='l',xlab='day')
 
 ```
+
 we can see pm2.5 against time is not a clear relationship and there are many seasonal spikes - One thing is that since there are random fluctations in our final model we will not use date since in a regression model the advance of one day would theoretically advance pm2.5 which is not the relationship we see
 
 We can also extract that dew, temp, pres are very clearly related from the following:
-```{r}
+
+```{r echo=FALSE , out.width= "90%" , out.height="90%"}
 par(mfrow=c(2,2))
 plot(1:1826,Pollution_Daily$Avg_Day_TEMP,type="l",xlab="day",ylab='temp')
 plot(1:1826,Pollution_Daily$Avg_Day_DEWP,type='l',xlab='day',ylab='dew')
@@ -174,6 +177,7 @@ Max wind is also related to Avg_Day_PM2.5 since more wind produces less 2.5
 
 
 At first glance it may seem that pm2.5 may not vary with month day or year since there are a lot of random spike but looking at a mean of all pm2.5 with each factor shows us that it indeed is influenced highly by these predictor
+
 ```{r echo=FALSE}
 pmday=ggplot(Pollution_Daily,aes(Day,Avg_Day_PM2.5))+
 geom_line() 
@@ -258,8 +262,9 @@ r.yday=update(lm_all,~.-Day)$res
 r.day=lm(Day~.,data=nonatrain[,-1])$res
 tmpday=lm(r.yday~r.day)
 #5x2 to show each
+titles='pollution daily res'
 par(mfrow=c(2,5))
-plot(r.dew,r.ydew,xlab="dew residual",ylab="Pollution residual")
+plot(r.dew,r.ydew,xlab="dew residual",ylab=titles)
 abline(tmp)
 
 
@@ -318,7 +323,7 @@ test_influence<-function(x){
   return(a)
 }
 ```
-We can check some numerical tests to determine errors in assumptions, such as constant variance, normality of residual and uncorrelated error
+Now we can check some of the plot of diagnostic
 
 
 ```{r echo=FALSE}
@@ -327,20 +332,22 @@ lm_all_2=lm(Avg_Day_PM2.5~.-Date_D,data=Pollution_Daily.train)
 
 ```{r echo = FALSE }
 par(mfrow=c(2,2))
-plot(lm_all_2)
+plot(lm_all)
 ```
 Taking a glance at our linear model, we see that it does not appear to meet all error assumptions.  Particularly, the Q-Q plot suggests non-normality and the Fitted-Residual plot suggests heteroscedasticity and some degree of non-linearity.  However, the Residuals-Leverage plot appears to indicate that we don't have any high influence points.
 
 
 ```{r echo=FALSE}
 ##test_error_assumptions(lm_all_2)
-
 ##Testing Homocedasticity
-bptest(lm_all_2)
+bptest(lm_all)
 ##Testing Normality
-shapiro.test(residuals(lm_all_2))
+shapiro.test(residuals(lm_all))
 ##Testing Uncorrelated Errors
-dwtest(lm_all_2)
+dwtest(lm_all)
+
+plot(1:1434, summary(lm_all)$res, type='o')
+abline(h=0, lty=2, col="blue", lwd=2)
 ```
 As we can tell through testing more formally, none of the error assumptions of homocedasticity, normality, and uncorrelated errors are accurate.
 
@@ -349,10 +356,10 @@ As we can tell through testing more formally, none of the error assumptions of h
 ##test_leverage(lm_all)
 par(mfrow=c(1,2))
 ##Plot cooks.distance
-cook = cooks.distance(lm_all_2)
+cook = cooks.distance(lm_all)
 halfnorm(cook, labs=row.names(Pollution_Daily.train), ylab="Cook's distances")
 ##Plot Leverages
-lev=influence(lm_all_2)$hat
+lev=influence(lm_all)$hat
 halfnorm(lev, labs=row.names(Pollution_Daily.train), ylab="Leverages")
 ##Checking for cooks.distance greater than 1
 # max(cooks.distance(lm_all_2))
@@ -366,38 +373,40 @@ In regards to unusual observations, our maximum cooks distance as seen above ind
 
 
 ```{r echo=FALSE}
-test_outlier(lm_all_2)
+test_outlier(lm_all)
 # rstudent(lm_all_2)
 ```
-As we can see above, we also have four outliers in the dataset. We can remove these outliers from our dataset and refit the model, and see how this changes our diagnostics.
+As we can see above, we also have four outliers in the dataset.
+
+So in order to remedy non linearity, heteroscedasticity, non normal residual and autocorrelation we would try to
 
 ```{r echo=FALSE}
 ##Remove Outliers-Note that with the rows we must be mindful we removed one in five values from the train data.  We must multiply our outlier residuals by 4/5 and round down to the nearest integer.
-Pollution_Daily.train.new<-Pollution_Daily.train[-c(333,886,1181,1213),]
-lm_all_3=lm(Avg_Day_PM2.5~.-Date_D,data=Pollution_Daily.train.new)
+boxcox(lm_all)
+
 ```
 
 ```{r echo=FALSE}
-test_outlier(lm_all_3)
+test_outlier(lm_all)
 ```
 
 ```{r echo=FALSE}
-boxcox(lm_all_3,plotit=T)
+boxcox(lm_all,plotit=T)
 par(mfrow=c(2,2))
-bc=boxcox(lm_all_3);
+bc=boxcox(lm_all);
 lambda=bc$x[which.max(bc$y)]
 ```
 
 ```{r echo=FALSE}
 ##Fitting BoxCox model
-lm_all_4=lm((Avg_Day_PM2.5^lambda-1)/lambda~.-Date_D,data=Pollution_Daily.train.new)
-summary(lm_all_4)
+#lm_all_4=lm((Avg_Day_PM2.5^lambda-1)/lambda~.-Date_D,data=Pollution_Daily.train.new)
+#summary(lm_all_4)
 
 ```
 
 ```{r echo=FALSE}
-g = gls(Avg_Day_PM2.5~.-Date_D, correlation = corARMA(p=1), data=na.omit(Pollution_Daily.train.new))
-summary(g)
+#g = gls(Avg_Day_PM2.5~.-Date_D, correlation = corARMA(p=1), data=na.omit(Pollution_Daily.train.new))
+#summary(g)
 ```
 
 **Section 4: Conclusions**
