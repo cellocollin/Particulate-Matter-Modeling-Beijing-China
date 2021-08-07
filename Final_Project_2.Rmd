@@ -381,20 +381,14 @@ As we can see after applying a Generalised Least Square with correlated error wi
 Therefore, it may be a good idea to stick with OLS specifically the transformed regression for the sake of fitting a parametric model in this dataset. 
 
 ```{r echo = FALSE }
+box=boxcox(lm_all);box$x[which.max(box$y)]
+#summary(lm_all)
 
-
-
-
-lm32=lm( Avg_Day_PM2.5~.-(Year+Max_Day_CBWD) , data = trainingdate)
-bc=boxcox(lm32)
-lambda=bc$x[which.max(bc$y)]
-lm33=lm((Avg_Day_PM2.5^lambda-1)/lambda ~.-(Year+Max_Day_CBWD) , data = trainingdate)
-dwtest(lm33)
-shapiro.test(residuals(lm33))
-bptest(lm33)
-res <- residuals(general)
-#res[1:1434]
-
+lmboxfinalmodel <- lm((Avg_Day_PM2.5^lambda-1)/lambda ~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Month) , data = trainingdate)
+bptest(lmboxfinalmodel)
+shapiro.test(residuals(lmboxfinalmodel))
+extractAIC(lmboxfinalmodel)
+summary(lmboxfinalmodel)
 ```
 
 
