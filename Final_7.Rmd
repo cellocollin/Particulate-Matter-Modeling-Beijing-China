@@ -387,17 +387,17 @@ finalmodelpredict<-predict(lmboxfinalmodel,nonatest);
 for (k in 1:355)
 {
   finalmodelpredict[k] <- invBoxCox(finalmodelpredict[k],lambda)
-};diagnostic<-data.frame(rmse(finalmodelpredict,nonatest [,2]),bptest(lmboxfinalmodel)[4],
+};diagnostic<-data.frame(summary(lmboxfinalmodel)[9] , rmse(finalmodelpredict,nonatest [,2]),bptest(lmboxfinalmodel)[4],
 shapiro.test(residuals(lmboxfinalmodel))[2] ,extractAIC(lmboxfinalmodel)[2]
 )
 extractAIC(lmboxfinalmodel)
-colnames(diagnostic)<-c('rmse', 'bptest p' , 'shapiro p ' , 'aic')
+colnames(diagnostic)<-c('r square value' , 'rmse', 'bptest p' , 'shapiro p ' , 'aic')
 diagnostic
 #finalmodelpredict <- predict(lmboxfinalmodel , nonatest)
 
 ```
 
-We see that this model has normal residual as well as heteroscedasticity. However there is autocorrelation so a non parametric method such as regression splines or kernel estimation may be a better way to model particulates in Beijing though our model is greatly improved from the previous. 
+We see that this model has normal residual as well as no heteroscedasticity. However there is autocorrelation so a non parametric method such as regression splines or kernel estimation may be a better way to model particulates in Beijing though our model is greatly improved from the previous. Clearly though this is 
 
 **Section 4: Conclusions**
 
