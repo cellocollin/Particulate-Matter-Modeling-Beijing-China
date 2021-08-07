@@ -70,7 +70,11 @@
 \makeatother
 \subtitle{by
 
-Zhengtao Xu, Jennings Cheng and Collin Carmichael}
+Zhengtao Xu - Section 1 and Section 2
+
+Jennings Cheng - Sections 2, 3, and 4
+
+Collin Carmichael - Sections 3, and 4}
 \author{Statistics 425 Applied Regression and Design}
 \date{August 6, 2021}
 
@@ -304,15 +308,21 @@ transformed regression for the sake of fitting a parametric model in
 this dataset.
 
 \begin{verbatim}
-##        rmse   bptest p shapiro p        aic
-## BP 114.4869 0.01446565  0.2985939 -38.51955
+## [1]  52.00000 -10.72596
 \end{verbatim}
 
-We see that this model has normal residual as well as
+\begin{verbatim}
+##    r square value     rmse  bptest p shapiro p        aic
+## BP      0.5788248 51.14223 0.1504602  0.3671908 -10.72596
+\end{verbatim}
+
+We see that this model has normal residual as well as no
 heteroscedasticity. However there is autocorrelation so a non parametric
 method such as regression splines or kernel estimation may be a better
 way to model particulates in Beijing though our model is greatly
-improved from the previous.
+improved from the previous. Clearly though this is much improved from
+the first model with all predictor and obviously much better if the time
+was not factor with an r square of .58.
 
 \textbf{Section 4: Conclusions}
 
@@ -356,10 +366,14 @@ switched to back to a simple boxcox transformation. However we also saw
 in the gls model that shows our model fits the dataset more precisely,
 and of course it also looks better under diagnostics.
 
-To sum up in bullet points: Original Predictors Show Significant
-Correlation Full Model Does Not Meet Error Assumptions/Has Unusual
-Observations Doing generalised least squares did not improve the model
-Final Model which is a boxcox transformation with factor day, month,
-year predicts PM2.5 Better Than Full Model
+To sum up in bullet points:
+
+Original Predictors Show Significant Correlation
+
+Full Model Does Not Meet Error Assumptions/Has Unusual Observations
+
+Doing generalised least squares did not improve the model Final Model
+which is a boxcox transformation with factor day, month, year predicts
+PM2.5 Better Than Full Model
 
 \end{document}

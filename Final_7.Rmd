@@ -340,6 +340,8 @@ The shapiro wilk shows that we easily have residual normal with p=0.54 >.05 whil
 
 So our explanation of variation improved but there is still steep autocorrelation and heteroscedasticity - we could combine Generalised Least Squares with correlated error to our Boxcox transformed data for the first one and try a different model with OLS and the Boxcox transformation and evaluate the performance of both model:
 
+
+**3.2**
 ```{r echo=FALSE}
 general = gls((Avg_Day_PM2.5^.101-1)/.101~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Max_Day_CBWD)+factor(Year)+factor(Month)+factor(Day), correlation = corAR1(form=~1:1460), data=na.omit(trainingdate),method="ML")
 #summary(general)
@@ -390,14 +392,15 @@ for (k in 1:355)
 };diagnostic<-data.frame(summary(lmboxfinalmodel)[9] , rmse(finalmodelpredict,nonatest [,2]),bptest(lmboxfinalmodel)[4],
 shapiro.test(residuals(lmboxfinalmodel))[2] ,extractAIC(lmboxfinalmodel)[2]
 )
-extractAIC(lmboxfinalmodel)
+#extractAIC(lmboxfinalmodel)
 colnames(diagnostic)<-c('r square value' , 'rmse', 'bptest p' , 'shapiro p ' , 'aic')
 diagnostic
 #finalmodelpredict <- predict(lmboxfinalmodel , nonatest)
-
+plot(c(1:355) , finalmodelpredict,col='red' ,lwd="2", type='l')
+lines(c(1:355), nonatest [ , 2 ] )
 ```
 
-We see that this model has normal residual as well as no heteroscedasticity. However there is autocorrelation so a non parametric method such as regression splines or kernel estimation may be a better way to model particulates in Beijing though our model is greatly improved from the previous. Clearly though this is 
+We see that this model has normal residual as well as no heteroscedasticity. However there is autocorrelation so a non parametric method such as regression splines or kernel estimation may be a better way to model particulates in Beijing though our model is greatly improved from the previous. Clearly though this is much improved from the first model with all predictor and obviously much better if the time was not factor with an r square of .58.
 
 **Section 4: Conclusions**
 
