@@ -150,9 +150,9 @@ The most common direction is SE and NW while sometimes NE or CV
 Now that we know the distributions we can take a look at some pm2.5 vs predictor
 
 
-The pm and time is not a clear relationship and there are many seasonal spikes - One thing is that since there are random fluctations in our final model we will not use date since in a regression model the advance of one day would theoretically advance pm2.5 which is not the relationship we see
+The pm and time is not a clear relationship and there are many seasonal spikes - One thing is that since there are random fluctations in our final model we will not use Date since in a regression model the advance of one day would theoretically advance pm2.5 which is not the relationship we see - and also any hypothesize increase in pm2.5 due to global warming trends in the date would be explained by the year variable and of course the other predictors so we decide not to use the column for our analysis. In the same way we would make month and day factors due to the same concern which is an increase in either of these do not necessarily mean an increase in particulate.
 
-We can also extract that dew, temp, pres are very clearly related from the following:
+We can also extract that dew, temp, pres are very clearly related from the following which corroborates what was shown in heatmap.
 
 ```{r echo=FALSE   , out.height="90%"}
 par(mfrow=c(2,2))
@@ -162,13 +162,8 @@ plot(1:1826,Pollution_Daily$Avg_Day_PRES,type='l',xlab='day',ylab='pres')
 plot(1:1826,Pollution_Daily$Avg_Day_PM2.5,type='l',xlab='day')
 ```
 
-Dew and temp are very similar and pres is the opposite so we may not necessarily need all three in the final model 
 
-Max wind is also related to Avg_Day_PM2.5 since more wind produces less 2.5
-
-
-
-At first glance it may seem that pm2.5 may not vary with month day or year since there are a lot of random spike but looking at a mean of all pm2.5 with each factor shows us that it indeed is influenced highly by these predictor
+PM2.5 is obviously highly unpredictable from just looking at the time series. We will see if there is a relationship with day or month so that we can see if including these in the linear regression as factor would make sense.
 
 ```{r echo=FALSE}
 pmday=ggplot(Pollution_Daily,aes(Day,Avg_Day_PM2.5))+
@@ -197,16 +192,17 @@ plot(1:12 , month2.5 , type = "h" , xlab="month" , ylab='pm2.5 avg '
 plot(2010 : 2014, year2.5, type='h' , xlab='year' , ylab='pm2.5 avg')
 plot(1:31 , day2.5, type='h' , xlab='day' , ylab= ' pm2.5 avg')
 ```
-As we see the variation between the month year and day is important and vary so therefore for the sake of fitting a model between these years every variable will be important beside Date_D
+As we see the variation between the month year and day is important - highly significant differences between different days, years, or months so it would make much sense to include these in MLR
 
 **3.1: Fitting model and diagnostic**
 
-We can fit a multiple linear regression with response Avg_Day_PM and predictor being every variable besides date and below we see the prediction in red on the testing (every 5th observation in the 5 year long data set) after fitting train
+Now that we know what our data looks like in accordance with the response we can fit a multiple linear regression with response Avg_Day_PM and predictor every variable besides 'Date_D', and below we see the prediction in red on the testing (every 5th observation in the 5 year long data set) after fitting on the training dataset(which is the complement of test)
 
 ```{r , echo = FALSE }
 ##Fitting Full Model
 trainingdate <- Pollution_Daily.train [ , - 1 ]
-lm_all=lm(Avg_Day_PM2.5~.,data=trainingdate)
+trainingdate
+lm_all=lm(Avg_Day_PM2.5~,data=trainingdate)
 row.names(Pollution_Daily.test) <- NULL
 Pollution_Daily.test
 testpm=predict(lm_all , Pollution_Daily.test [ , -1 ] )
