@@ -196,13 +196,14 @@ As we see the variation between the month year and day is important - highly sig
 
 **3.1: Fitting model and diagnostic**
 
-Now that we know what our data looks like in accordance with the response we can fit a multiple linear regression with response Avg_Day_PM and predictor every variable besides 'Date_D', and below we see the prediction in red on the testing (every 5th observation in the 5 year long data set) after fitting on the training dataset(which is the complement of test)
+Now that we know what our data looks like in accordance with the response we can fit a multiple linear regression with response Avg_Day_PM and predictor every variable besides 'Date_D', and look at the results. We can also see the predicted values of pm2.5 in in red on the testing (every 5th observation in the 5 year long data set) after fitting on the training dataset(which is the complement of test)
 
 ```{r , echo = FALSE }
 ##Fitting Full Model
 trainingdate <- Pollution_Daily.train [ , - 1 ]
 trainingdate
-lm_all=lm(Avg_Day_PM2.5~,data=trainingdate)
+lm_all=lm(Avg_Day_PM2.5~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Max_Day_CBWD)+factor(Year)+factor(Month)+factor(Day),data=trainingdate)
+summary(lm_all)[4]
 row.names(Pollution_Daily.test) <- NULL
 Pollution_Daily.test
 testpm=predict(lm_all , Pollution_Daily.test [ , -1 ] )
@@ -212,11 +213,10 @@ testpm=predict(lm_all , Pollution_Daily.test [ , -1 ] )
 plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
 
-summary(lm_all)$coefficients[,4]
 summary(lm_all)[8]
 
 ```
-After fitting a full model we see every single predictor besides year is significant however R square is only 0.4 which suggests even though each coefficient is directionally correct the variation of response is not accurate
+After fitting a full model with every predictor besides 'Date_D' and Month, Year, and Day all in factor version we see that firstly there are many
 
 We can see some diagnostics as to why our model may not be that effective
 ```{r echo=FALSE , out.width="90%" }
