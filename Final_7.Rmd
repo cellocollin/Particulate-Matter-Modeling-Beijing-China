@@ -381,18 +381,20 @@ lambda=bc$x[which.max(bc$y)]
 ```
 ```{r echo = FALSE }
 #summary(lm_all)
-lmboxfinalmodel <- lm((Avg_Day_PM2.5^lambda-1)/lambda ~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Month)+factor(Day)+factor(Month) , data = trainingdate)
+lmboxfinalmodel <- lm((Avg_Day_PM2.5^lambda-1)/lambda ~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Year)+factor(Day)+factor(Month) , data = trainingdate)
+
 finalmodelpredict<-predict(lmboxfinalmodel,nonatest);
-diagnostic<-data.frame(rmse(finalmodelpredict,nonatest [,2]),bptest(lmboxfinalmodel)[4],
-shapiro.test(residuals(lmboxfinalmodel))[2] ,extractAIC(lmboxfinalmodel)[2]
-)
-colnames(diagnostic)<-c('rmse', 'bptest p' , 'shapiro p ' , 'aic')
-diagnostic
-#finalmodelpredict <- predict(lmboxfinalmodel , nonatest)
 for (k in 1:355)
 {
   finalmodelpredict[k] <- invBoxCox(finalmodelpredict[k],lambda)
-}
+};diagnostic<-data.frame(rmse(finalmodelpredict,nonatest [,2]),bptest(lmboxfinalmodel)[4],
+shapiro.test(residuals(lmboxfinalmodel))[2] ,extractAIC(lmboxfinalmodel)[2]
+)
+extractAIC(lmboxfinalmodel)
+colnames(diagnostic)<-c('rmse', 'bptest p' , 'shapiro p ' , 'aic')
+diagnostic
+#finalmodelpredict <- predict(lmboxfinalmodel , nonatest)
+
 ```
 
 We see that this model has normal residual as well as heteroscedasticity. However there is autocorrelation so a non parametric method such as regression splines or kernel estimation may be a better way to model particulates in Beijing though our model is greatly improved from the previous. 
@@ -412,7 +414,10 @@ Our model was worse using gls and from the phi interval we did not reject the hy
 
 
 To sum up in bullet points:
+
 Original Predictors Show Significant Correlation
+
 Full Model Does Not Meet Error Assumptions/Has Unusual Observations
+
 Doing generalised least squares did not improve the model
 Final Model which is a boxcox transformation with factor day, month, year predicts PM2.5 Better Than Full Model

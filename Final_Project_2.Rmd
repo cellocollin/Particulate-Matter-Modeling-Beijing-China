@@ -430,8 +430,12 @@ Our model was worse using gls and from the phi interval we did not reject the hy
 
 
 To sum up in bullet points:
+
 Original Predictors Show Significant Correlation
+
 Full Model Does Not Meet Error Assumptions/Has Unusual Observations
+
 Doing generalised least squares did not improve the model
+
 Final Model which is a boxcox transformation with factor day, month, year predicts PM2.5 Better Than Full Model
 
