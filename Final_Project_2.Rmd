@@ -212,11 +212,11 @@ testpm=predict(lm_all , Pollution_Daily.test [ , -1 ] )
 #summary(lm_all)
 plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
-
+lmnew<-lm(Avg_Day_PM2.5~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Max_Day_CBWD)+factor(Year,exclude=c('2011','2013','2014'))+factor(Month)+factor(Day),data=trainingdate);summary(lmnew)
 summary(lm_all)[8]
 
 ```
-After fitting a full model with every predictor besides 'Date_D' and Month, Year, and Day all in factor version we see that firstly there are many
+After fitting a full model with every predictor besides 'Date_D' and Month, Year, and Day all in factor version we see that firstly there are many insignificant predictors unsurpisingly in the factors. As expected we see highly significant predictors in the factor(Day) in the 20s since that is what we saw highly in the mean particulate vs. day visualization. But the majority of days are insignificant so it makes sense to just drop the day column. Every month factor is significant besides the 2nd so we keep this. Year is all insignificant unless the year is 2012, 
 
 We can see some diagnostics as to why our model may not be that effective
 ```{r echo=FALSE , out.width="90%" }
@@ -244,18 +244,10 @@ tmpls <- lm(r.yls~r.ls)
 r.ylr <- update(lm_all ,~. - Max_Day_LR)$res
 r.lr <- lm(Max_Day_LR ~.,data = nonatrain[ , -1 ] )$res
 tmplr <- lm(r.ylr ~ r.lr )
-r.yyear = update (lm_all,~.-Year)$res
-r.year=lm(Year~.,data=nonatrain[ , -1 ] )$res
-tmpyear=lm(r.yyear~r.year)
-r.ymonth = update (lm_all,~.-Month)$res
-r.month = lm(Month~.,data=nonatrain[,-1])$res
-tmpmonth=lm(r.ymonth~r.month)
-r.yday=update(lm_all,~.-Day)$res
-r.day=lm(Day~.,data=nonatrain[,-1])$res
-tmpday=lm(r.yday~r.day)
+
 #5x2 to show each
 titles='pollution daily res'
-par(mfrow=c(2,5))
+par(mfrow=c(1,6))
 plot(r.dew,r.ydew,xlab="dew residual",ylab=titles)
 abline(tmp)
 
@@ -271,15 +263,9 @@ plot(r.ls,r.yls,xlab='ls residual',ylab=titles)
 abline(tmpls)
 plot(r.lr,r.ylr,xlab='lr residual',ylab=titles)
 abline(tmplr)
-plot(r.year,r.yyear,xlab='year residual' , ylab=titles)
-abline(tmpyear)
 
-plot(r.month,r.ymonth,xlab="month residual",ylab=titles)
-abline(tmpmonth)
-plot(r.day,r.yday,xlab="day residual",ylab=titles)
-abline(tmpday)
 ```
-We see that there are a lot of high influence points in partial regression for each numerical variable 
+We see that there are a lot of high influence points in partial regression for each numerical variable
 
 
 ```{r include=FALSE}
