@@ -7,8 +7,13 @@ author: |
   Statistics 425 Applied Regression and Design
 subtitle: |
   by
+
+  Zhengtao Xu - Section 1 and Section 2
   
-  Zhengtao Xu, Jennings Cheng and Collin Carmichael
+  Jennings Cheng - Sections 2, 3, and 4
+  
+  Collin Carmichael - Sections 3, and 4
+  
 date: |
   August 6, 2021
 documentclass: report
@@ -376,7 +381,7 @@ lambda=bc$x[which.max(bc$y)]
 ```
 ```{r echo = FALSE }
 #summary(lm_all)
-lmboxfinalmodel <- lm((Avg_Day_PM2.5^lambda-1)/lambda ~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Month) , data = trainingdate)
+lmboxfinalmodel <- lm((Avg_Day_PM2.5^lambda-1)/lambda ~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Month)+factor(Day)+factor(Month) , data = trainingdate)
 finalmodelpredict<-predict(lmboxfinalmodel,nonatest);
 diagnostic<-data.frame(rmse(finalmodelpredict,nonatest [,2]),bptest(lmboxfinalmodel)[4],
 shapiro.test(residuals(lmboxfinalmodel))[2] ,extractAIC(lmboxfinalmodel)[2]
