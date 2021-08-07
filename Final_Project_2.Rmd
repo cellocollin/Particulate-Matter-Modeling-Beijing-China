@@ -201,11 +201,11 @@ Now that we know what our data looks like in accordance with the response we can
 ```{r , echo = FALSE }
 ##Fitting Full Model
 trainingdate <- Pollution_Daily.train [ , - 1 ]
-trainingdate
+
 lm_all=lm(Avg_Day_PM2.5~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Max_Day_CBWD)+factor(Year)+factor(Month)+factor(Day),data=trainingdate)
-summary(lm_all)[4]
+#summary(lm_all)[4]
 row.names(Pollution_Daily.test) <- NULL
-Pollution_Daily.test
+#Pollution_Daily.test
 testpm=predict(lm_all , Pollution_Daily.test [ , -1 ] )
 
 #visually test
@@ -344,16 +344,16 @@ general = gls((Avg_Day_PM2.5^.101-1)/.101~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES
 #summary(general)
 #cant have na's
 nonatest=na.omit(Pollution_Daily.test)
-nonatest[,2]
+#nonatest[,2]
 #function to reverse the boxcox transformation
 invBoxCox <- function(x, lambda)
     		if (lambda == 0) exp(x) else (lambda*x + 1)^(1/lambda)
 
 row.names(nonatest)<-NULL
 #prediction on testing for gls model and compare to lm_all
-nonatest[,2]
+#nonatest[,2]
 
-testgeneral
+
 
 testgeneral=predict(general,nonatest)
 testpm=predict(lm_all,nonatest)
@@ -364,7 +364,7 @@ for (k in 1:355)
   testgeneral[k]=invBoxCox(testgeneral[k] , lambda );testbox[k]=invBoxCox(testbox[k],lambda)
 }
 
-testgeneral
+#testgeneral
 
 rmsetable=data.frame(rmse(nonatest[,2],testbox),rmse(nonatest[,2],testgeneral) ,
 rmse(nonatest[,2],testpm))
@@ -380,9 +380,10 @@ As we can see after applying a Generalised Least Square with correlated error wi
 
 Therefore, it may be a good idea to stick with OLS specifically the transformed regression for the sake of fitting a parametric model in this dataset. 
 
-```{r}
+```{r echo = FALSE }
 
-```
+
+
 
 lm32=lm( Avg_Day_PM2.5~.-(Year+Max_Day_CBWD) , data = trainingdate)
 bc=boxcox(lm32)
@@ -392,53 +393,11 @@ dwtest(lm33)
 shapiro.test(residuals(lm33))
 bptest(lm33)
 res <- residuals(general)
-res[1:1434]
+#res[1:1434]
 
 ```
 
-```{r echo=FALSE}
-g = gls(Avg_Day_PM2.5~.-Date_D, correlation = corARMA(p=1), data=na.omit(Pollution_Daily.train.new))
-#summary(g)
-lm33=lm((Avg_Day_PM2.5^lambda-1)/lambda ~.-(Year+Max_Day_CBWD) , data = trainingdate)
-lm32=lm( Avg_Day_PM2.5~.-(Year+Max_Day_CBWD) , data = trainingdate)
-bc=boxcox(lm32)
-Pollution_Daily.test
-lambda;lm33=lm((Avg_Day_PM2.5^lambda-1)/lambda ~Max_Day_LR+Max_Day_LS+Max_Day_LWS+Avg_Day_PRES+Avg_Day_TEMP+Avg_Day_DEWP+Month+Day  , data = trainingdate)
-dim(trainingdate);dim(trainnooutlier)
-dwtest(lm33)
-shapiro.test(residuals(lm33))
-bptest(lm33)
-summary(lm33)
-lm_all=lm(Avg_Day_PM2.5~., data=trainingdate)
-test_outlier(lm_all)
-row.names(trainingdate) <- NULL
-#trainnooutlier <- trainingdate[-c(333,886,1181, 1213 ) , ]
-lmnooutlier <- lm(Avg_Day_PM2.5~.,data=trainnooutlier)
-summary(lmnooutlier)
-bptest(lm33)
-plot(lm33)
-nonatest
-Pollution_Daily.test
-lm_all
-bc=boxcox(lm_all)
-lambda=bc$x[which.max(bc$y)]
-v <- residuals(newgeneralmodel)
-attr(v,"std") <- NULL      # get rid of the additional attribute
-v=as.vector(v);car::durbinWatsonTest( v )
-options(max.print=100000)
-bptest(general)
-test_error_assumptions(newgeneralmodel)
-test_influence(newgeneralmodel)
-test_leverage(newgeneralmodel)
-test_outlier(newgeneralmodel)
-summary(general)
-row.names(nonatest) <- NULL
-testmodel <- predict(lm33,nonatest)
-gen = gls(Avg_Day_PM2.5~.,data=nonatrain)
-summary(gen)
-intervals(general)
-shapiro.test(residuals(newgeneralmodel));dwtest(lm_all)
-```
+
 
 **Section 4: Conclusions**
 

@@ -105,84 +105,82 @@ predictor
 
 The pm and time is not a clear relationship and there are many seasonal
 spikes - One thing is that since there are random fluctations in our
-final model we will not use date since in a regression model the advance
+final model we will not use Date since in a regression model the advance
 of one day would theoretically advance pm2.5 which is not the
-relationship we see
+relationship we see - and also any hypothesize increase in pm2.5 due to
+global warming trends in the date would be explained by the year
+variable and of course the other predictors so we decide not to use the
+column for our analysis. In the same way we would make month and day
+factors due to the same concern which is an increase in either of these
+do not necessarily mean an increase in particulate.
 
 We can also extract that dew, temp, pres are very clearly related from
-the following:
+the following which corroborates what was shown in heatmap.
 
 \includegraphics[height=0.9\textheight]{Final_Project_2_files/figure-latex/unnamed-chunk-5-1}
 
-Dew and temp are very similar and pres is the opposite so we may not
-necessarily need all three in the final model
-
-Max wind is also related to Avg\_Day\_PM2.5 since more wind produces
-less 2.5
-
-At first glance it may seem that pm2.5 may not vary with month day or
-year since there are a lot of random spike but looking at a mean of all
-pm2.5 with each factor shows us that it indeed is influenced highly by
-these predictor
+PM2.5 is obviously highly unpredictable from just looking at the time
+series. We will see if there is a relationship with day or month so that
+we can see if including these in the linear regression as factor would
+make sense.
 
 \includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-6-1.pdf}
-As we see the variation between the month year and day is important and
-vary so therefore for the sake of fitting a model between these years
-every variable will be important beside Date\_D
+As we see the variation between the month year and day is important -
+highly significant differences between different days, years, or months
+so it would make much sense to include these in MLR
 
 \textbf{3.1: Fitting model and diagnostic}
 
-We can fit a multiple linear regression with response Avg\_Day\_PM and
-predictor being every variable besides date and below we see the
-prediction in red on the testing (every 5th observation in the 5 year
-long data set) after fitting train
+Now that we know what our data looks like in accordance with the
+response we can fit a multiple linear regression with response
+Avg\_Day\_PM and predictor every variable besides `Date\_D', and look at
+the results. We can also see the predicted values of pm2.5 in in red on
+the testing (every 5th observation in the 5 year long data set) after
+fitting on the training dataset(which is the complement of test)
 
 \includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-7-1.pdf}
 
 \begin{verbatim}
-##    (Intercept)   Avg_Day_DEWP   Avg_Day_TEMP   Avg_Day_PRES    Max_Day_LWS 
-##   6.284491e-01   4.717073e-78  3.203974e-104   2.643099e-14   2.759269e-09 
-##     Max_Day_LS     Max_Day_LR Max_Day_CBWDNE Max_Day_CBWDNW Max_Day_CBWDSE 
-##   4.680786e-05   3.341618e-16   8.172423e-06   6.685417e-04   2.509930e-03 
-##           Year          Month            Day 
-##   8.690987e-02   3.685244e-04   7.488178e-05
+## $adj.r.squared
+## [1] 0.4862557
 \end{verbatim}
 
-\begin{verbatim}
-## $r.squared
-## [1] 0.4041776
-\end{verbatim}
+After fitting a full model with every predictor besides `Date\_D' and
+Month, Year, and Day all in factor version we see that firstly there are
+many insignificant predictors unsurpisingly in the factors. As expected
+we see highly significant predictors in the factor(Day) in the 20s since
+that is what we saw highly in the mean particulate vs.~day
+visualization. But the majority of days are insignificant so it makes
+sense to just drop the day column. Every month factor is significant
+besides the 2nd so this is important to keep. Year is all insignificant
+unless the year is 2012, which means 2012 is a lower pm anomaly. We
+could hypothetically exclude every non 2012 level but the simpler way is
+to not use the predictor.
 
-After fitting a full model we see every single predictor besides year is
-significant however R square is only 0.4 which suggests even though each
-coefficient is directionally correct the variation of response is not
-accurate
+Before considering dropping variables we need to check diagnostics. So
+here are some of the important assumptions that we will have to
+validate, namely constant variance, non correlated and normal residuals.
 
-We can see some diagnostics as to why our model may not be that
-effective
-\includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-8-1.pdf}
-We see that there are a lot of high influence points in partial
-regression for each numerical variable
+We can also check the visualizations for the regression of normality and
+heteroscedasticity.
 
-Now we can check some of the plot of diagnostic
-
-\includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-11-1.pdf}
+\includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-9-1.pdf}
 Taking a glance at our linear model, we see that it does not appear to
 meet all error assumptions. Particularly, the Q-Q plot suggests
 non-normality and the Fitted-Residual plot suggests heteroscedasticity
-and some degree of non-linearity. However, the Residuals-Leverage plot
-appears to indicate that we don't have any high influence points.
+and some degree of non-linearity. The Residuals-Leverage plot however
+appears to indicate we don't have highly influential points.
 
 \begin{verbatim}
 ##       bptest p shapiro test p durbin watson p
-## 1 3.188052e-31   3.601797e-25     6.90063e-80
+## 1 3.392827e-24    4.94394e-23    1.493388e-70
 \end{verbatim}
 
 As we can tell through testing more formally, none of the error
 assumptions of homocedasticity, normality, and uncorrelated errors are
 accurate.
 
-\includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-13-1.pdf}
+\includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-11-1.pdf}
 In regards to unusual observations, our maximum cooks distance as seen
 above indicates we have no datapoints that would be classified as highly
 influential, since it is much less than one. In constrast, however, we
@@ -193,29 +191,101 @@ and 1468 with wildly different y-values are likely ``bad.''
 
 \begin{verbatim}
 ##             b d        c
-## 417  4.327428 > 4.152348
-## 1108 5.299076 > 4.152348
-## 1477 4.762509 > 4.152348
-## 1517 4.561424 > 4.152348
+## 417  4.541472 > 4.152753
+## 1108 6.105989 > 4.152753
+## 1125 4.181143 > 4.152753
+## 1477 4.915473 > 4.152753
+## 1517 4.338133 > 4.152753
 \end{verbatim}
 
-As we can see above, we also have four outliers in the dataset.
+As we can see above, we also have four outliers in training data.
 
-So in order to remedy non linearity, heteroscedasticity, non normal
-residual and autocorrelation we would try to
+All things aside, in order to remedy non linearity, heteroscedasticity,
+non normal residual and autocorrelation we can apply a Boxcox
+transformation first for non linearity and making normally distributed
+residuals:
 
-\includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-15-1.pdf}
+This is the maximum likelihood for lambda so that will be the
+transformation we use
+
+We fit the model with the boxcox transformation which involves applying
+the transformation responseNew=(responseOld\^{}lambda-1)/lambda
 
 \begin{verbatim}
-##             b d        c
-## 417  4.327428 > 4.152348
-## 1108 5.299076 > 4.152348
-## 1477 4.762509 > 4.152348
-## 1517 4.561424 > 4.152348
+##   R-square value     bptest p shapiro test p durbin watson p
+## 1      0.5892627 0.0003424676      0.5473221    1.497302e-57
 \end{verbatim}
 
-\includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-17-1.pdf}
-\includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-17-2.pdf}
+The shapiro wilk shows that we easily have residual normal with p=0.54
+\textgreater.05 while we see that there is autocorrelation via dwtest
+and heteroscedasticity which is improve - R squared also went up by a
+massive \textasciitilde0.1 which means the variation we explain has
+increased substantially
+
+So our explanation of variation improved but there is still steep
+autocorrelation and heteroscedasticity - we could combine Generalised
+Least Squares with correlated error to our Boxcox transformed data for
+the first one and try a different model with OLS and the Boxcox
+transformation and evaluate the performance of both model:
+
+\begin{verbatim}
+##   transormed only r-mse GLS Transformed r-mse original model r-mse
+## 1              51.33086              52.18969             51.70159
+\end{verbatim}
+
+\begin{verbatim}
+## $corStruct
+##         lower      est.    upper
+## Phi 0.4397209 0.4903428 0.537859
+## attr(,"label")
+## [1] "Correlation structure:"
+\end{verbatim}
+
+\begin{verbatim}
+##   original aic   box aic gls with transformed aic
+## 1     11631.74 -537.3763                 3209.409
+\end{verbatim}
+
+As we can see after applying a Generalised Least Square with correlated
+error with boxcox transformation we have an rmse of 52, which is
+slightly higher than the original and only transformed linear
+regression. Also we see that we cannot reject the null hypothesis of
+residual being correlated since the lower bound of Phi which is the
+correlation variable does not include 0 which is what we would need to
+reject the null hypothesis. This suggests that GLS may not be the best
+model for this data since there is still correlation and the r-mse is
+higher than OLS
+
+Therefore, it may be a good idea to stick with OLS specifically the
+transformed regression for the sake of fitting a parametric model in
+this dataset.
+
+\includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-16-1.pdf}
+
+\begin{verbatim}
+## 
+##  Durbin-Watson test
+## 
+## data:  lm33
+## DW = 1.029, p-value < 2.2e-16
+## alternative hypothesis: true autocorrelation is greater than 0
+\end{verbatim}
+
+\begin{verbatim}
+## 
+##  Shapiro-Wilk normality test
+## 
+## data:  residuals(lm33)
+## W = 0.99765, p-value = 0.03448
+\end{verbatim}
+
+\begin{verbatim}
+## 
+##  studentized Breusch-Pagan test
+## 
+## data:  lm33
+## BP = 2.9786, df = 8, p-value = 0.9357
+\end{verbatim}
 
 \textbf{Section 4: Conclusions}
 
