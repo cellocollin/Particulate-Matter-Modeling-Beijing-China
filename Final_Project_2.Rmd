@@ -212,60 +212,13 @@ testpm=predict(lm_all , Pollution_Daily.test [ , -1 ] )
 #summary(lm_all)
 plot(c(1:366) ,  testpm , type = "l" , lwd= "2" , col = "red" )
 lines( c(1:366),Pollution_Daily.test[,2])
-lmnew<-lm(Avg_Day_PM2.5~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Max_Day_CBWD)+factor(Year,exclude=c('2011','2013','2014'))+factor(Month)+factor(Day),data=trainingdate);summary(lmnew)
-summary(lm_all)[8]
+
+summary(lm_all)[9]
 
 ```
-After fitting a full model with every predictor besides 'Date_D' and Month, Year, and Day all in factor version we see that firstly there are many insignificant predictors unsurpisingly in the factors. As expected we see highly significant predictors in the factor(Day) in the 20s since that is what we saw highly in the mean particulate vs. day visualization. But the majority of days are insignificant so it makes sense to just drop the day column. Every month factor is significant besides the 2nd so we keep this. Year is all insignificant unless the year is 2012, 
+After fitting a full model with every predictor besides 'Date_D' and Month, Year, and Day all in factor version we see that firstly there are many insignificant predictors unsurpisingly in the factors. As expected we see highly significant predictors in the factor(Day) in the 20s since that is what we saw highly in the mean particulate vs. day visualization. But the majority of days are insignificant so it makes sense to just drop the day column. Every month factor is significant besides the 2nd so this is important to keep. Year is all insignificant unless the year is 2012, which means 2012 is a lower pm anomaly. We could hypothetically exclude every non 2012 level but the simpler way is to not use the predictor.
 
-We can see some diagnostics as to why our model may not be that effective
-```{r echo=FALSE , out.width="90%" }
-#partialregress
-
-
-r.ydew=update(lm_all , ~. - Avg_Day_DEWP)$res
-nonatrain <- na.omit(trainingdate)
-r.dew=lm(Avg_Day_DEWP ~ . , data = nonatrain[ , - 1 ])$res
-tmp=lm(r.ydew ~ r.dew )
-
-
-r.ytemp=update(lm_all , ~. -Avg_Day_TEMP)$res
-r.temp=lm(Avg_Day_TEMP ~ . , data = nonatrain [ , -1 ])$res
-tmptemp=lm(r.ytemp~r.temp)
-r.ypres=update(lm_all ,~. - Avg_Day_PRES)$res
-r.pres=lm(Avg_Day_PRES ~. , data=nonatrain[,-1])$res
-tmppres=lm(r.ypres~r.pres)
-r.ylws=update(lm_all,~. -Max_Day_WLS)$res
-r.lws=lm(Max_Day_LWS ~.,data=nonatrain[,-1])$res
-tmplws=lm(r.ylws~r.lws)
-r.yls <- update(lm_all,~. -Max_Day_LS)$res
-r.ls <- lm( Max_Day_LS ~. , data= nonatrain [ ,-1 ])$res
-tmpls <- lm(r.yls~r.ls)
-r.ylr <- update(lm_all ,~. - Max_Day_LR)$res
-r.lr <- lm(Max_Day_LR ~.,data = nonatrain[ , -1 ] )$res
-tmplr <- lm(r.ylr ~ r.lr )
-
-#5x2 to show each
-titles='pollution daily res'
-par(mfrow=c(1,6))
-plot(r.dew,r.ydew,xlab="dew residual",ylab=titles)
-abline(tmp)
-
-
-plot(r.temp,r.ytemp,xlab="temp residual",ylab=titles)
-abline(tmptemp)
-plot(r.pres,r.ypres,xlab="pres residual",ylab= titles)
-abline(tmppres)
-
-plot(r.lws,r.ylws,xlab="lws residual",ylab=titles)
-abline(tmplws)
-plot(r.ls,r.yls,xlab='ls residual',ylab=titles)
-abline(tmpls)
-plot(r.lr,r.ylr,xlab='lr residual',ylab=titles)
-abline(tmplr)
-
-```
-We see that there are a lot of high influence points in partial regression for each numerical variable
+Before considering dropping variables we need to check diagnostics. So here are some of the important assumptions that we will have to validate, namely constant variance, non correlated and normal residuals.
 
 
 ```{r include=FALSE}
@@ -301,14 +254,14 @@ test_influence<-function(x){
   return(a)
 }
 ```
-Now we can check some of the plot of diagnostic
+We can also check the visualizations for the regression of normality and heteroscedasticity.
 
 
 ```{r echo = FALSE }
 par(mfrow=c(2,2))
 plot(lm_all)
 ```
-Taking a glance at our linear model, we see that it does not appear to meet all error assumptions.  Particularly, the Q-Q plot suggests non-normality and the Fitted-Residual plot suggests heteroscedasticity and some degree of non-linearity.  However, the Residuals-Leverage plot appears to indicate that we don't have any high influence points.
+Taking a glance at our linear model, we see that it does not appear to meet all error assumptions.  Particularly, the Q-Q plot suggests non-normality and the Fitted-Residual plot suggests heteroscedasticity and some degree of non-linearity.  The Residuals-Leverage plot however appears to indicate we don't have highly influential points.
 
 
 ```{r echo=FALSE}
@@ -349,39 +302,39 @@ In regards to unusual observations, our maximum cooks distance as seen above ind
 test_outlier(lm_all)
 # rstudent(lm_all_2)
 ```
-As we can see above, we also have four outliers in the dataset.
+As we can see above, we also have four outliers in training data.
 
-All things aside in order to remedy non linearity, heteroscedasticity, non normal residual and autocorrelation we can apply a Boxcox transformation first for non linearity and making normally distributed residual:
+All things aside, in order to remedy non linearity, heteroscedasticity, non normal residual and autocorrelation we can apply a Boxcox transformation first for non linearity and making normally distributed residuals:
 
 
 
-```{r echo=FALSE}
-bc=boxcox(lm_all,plotit = TRUE)
+```{r echo=FALSE,include=FALSE}
+bc=boxcox(lm_all)
 lambda=bc$x[which.max(bc$y)]
 print(lambda)
 ```
 
-This is the boxcox likelihood for lambda and we see that lambda is maximized at 0.1 so that will be the transformation we use
+This is the maximum likelihood for lambda so that will be the transformation we use
 
-Next we fit the model with the boxcox transformation which involves applying the transformation responseNew=(responseOld^lambda-1)/lambda
+We fit the model with the boxcox transformation which involves applying the transformation responseNew=(responseOld^lambda-1)/lambda
 
 
 ```{r echo=FALSE}
 
 par(mfrow=c(2,2))
 
-lmbox <-lm((Avg_Day_PM2.5^lambda-1)/lambda ~. , data = trainingdate)
+lmbox <-lm((Avg_Day_PM2.5^lambda-1)/lambda ~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Max_Day_CBWD)+factor(Year)+factor(Month)+factor(Day) , data = trainingdate)
 
 diagnosticdata <- as.data.frame(matrix(ncol=1+1+2,nrow=1))
 colnames(diagnosticdata) <- c( 'R-square value' , 'bptest p' , 'shapiro test p' , 'durbin watson p')
 diagnosticdata[,1+1] <- bptest(lmbox)[4]
 diagnosticdata[,2+1]<-shapiro.test(residuals(lmbox))[2]
 diagnosticdata[,3+1]<-dwtest(lmbox)[4]
-diagnosticdata[,1]<-summary(lmbox)[8]
+diagnosticdata[,1]<-summary(lmbox)[9]
 diagnosticdata
 ```
 
-The shapiro wilk shows that normality has been improved by a lot and data is more homoscedastic even though it is still very heteroskedastic and residual correlated. The better part is that R squared increased by nearly 0.1 which is relatively very large and means the model has improved in explanation of variation of the response.
+The shapiro wilk shows that we easily have residual normal with p=0.54 >.05 while we see that there is autocorrelation via dwtest and heteroscedasticity which is improve - R squared also went up by a massive ~0.1 which means the variation we explain has increased substantially
 
 So our explanation of variation improved but there is still steep autocorrelation and heteroscedasticity - we could combine Generalised Least Squares with correlated error to our Boxcox transformed data for the first one and try a different model with OLS and the Boxcox transformation and evaluate the performance of both model:
 

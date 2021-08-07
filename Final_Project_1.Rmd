@@ -185,6 +185,54 @@ for (k in 1:length(Pollution_Daily$Avg_Day_PM2.5))
   numberof=numberof+1}}
   
 }
+We can see some partial regression plots visualised for influential points and linearity. There are quite a few, looks like.
+```{r echo=FALSE , out.width="90%" }
+#partialregress
+
+
+r.ydew=update(lm_all , ~. - Avg_Day_DEWP)$res
+nonatrain <- na.omit(trainingdate)
+r.dew=lm(Avg_Day_DEWP ~ . , data = nonatrain[ , - 1 ])$res
+tmp=lm(r.ydew ~ r.dew )
+
+
+r.ytemp=update(lm_all , ~. -Avg_Day_TEMP)$res
+r.temp=lm(Avg_Day_TEMP ~ . , data = nonatrain [ , -1 ])$res
+tmptemp=lm(r.ytemp~r.temp)
+r.ypres=update(lm_all ,~. - Avg_Day_PRES)$res
+r.pres=lm(Avg_Day_PRES ~. , data=nonatrain[,-1])$res
+tmppres=lm(r.ypres~r.pres)
+r.ylws=update(lm_all,~. -Max_Day_WLS)$res
+r.lws=lm(Max_Day_LWS ~.,data=nonatrain[,-1])$res
+tmplws=lm(r.ylws~r.lws)
+r.yls <- update(lm_all,~. -Max_Day_LS)$res
+r.ls <- lm( Max_Day_LS ~. , data= nonatrain [ ,-1 ])$res
+tmpls <- lm(r.yls~r.ls)
+r.ylr <- update(lm_all ,~. - Max_Day_LR)$res
+r.lr <- lm(Max_Day_LR ~.,data = nonatrain[ , -1 ] )$res
+tmplr <- lm(r.ylr ~ r.lr )
+
+#5x2 to show each
+titles='pollution daily res'
+par(mfrow=c(1,6))
+plot(r.dew,r.ydew,xlab="dew residual",ylab=titles)
+abline(tmp)
+
+
+plot(r.temp,r.ytemp,xlab="temp residual",ylab=titles)
+abline(tmptemp)
+plot(r.pres,r.ypres,xlab="pres residual",ylab= titles)
+abline(tmppres)
+
+plot(r.lws,r.ylws,xlab="lws residual",ylab=titles)
+abline(tmplws)
+plot(r.ls,r.yls,xlab='ls residual',ylab=titles)
+abline(tmpls)
+plot(r.lr,r.ylr,xlab='lr residual',ylab=titles)
+abline(tmplr)
+
+```
+
 
 ```
 
