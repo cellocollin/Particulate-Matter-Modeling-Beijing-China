@@ -339,9 +339,9 @@ The shapiro wilk shows that we easily have residual normal with p=0.54 >.05 whil
 So our explanation of variation improved but there is still steep autocorrelation and heteroscedasticity - we could combine Generalised Least Squares with correlated error to our Boxcox transformed data for the first one and try a different model with OLS and the Boxcox transformation and evaluate the performance of both model:
 
 ```{r echo=FALSE}
-##Fitting BoxCox model
-general = gls((Avg_Day_PM2.5^.101-1)/.101~., correlation = corAR1(form=~1:1460), data=na.omit(trainingdate),method="ML")
-summary(general)
+
+general = gls((Avg_Day_PM2.5^.101-1)/.101~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Max_Day_CBWD)+factor(Year)+factor(Month)+factor(Day), correlation = corAR1(form=~1:1460), data=na.omit(trainingdate),method="ML")
+#summary(general)
 #cant have na's
 nonatest=na.omit(Pollution_Daily.test)
 nonatest[,2]
@@ -371,11 +371,14 @@ rmse(nonatest[,2],testpm))
 colnames(rmsetable)<-c("transormed only r-mse" ,"GLS Transformed r-mse" , "original model r-mse")
 rmsetable
 intervals(general)[2]
+aictable=data.frame(extractAIC(lm_all)[2] , extractAIC(lmbox) [ 2 ] , extractAIC(general) [ 2 ])
+colnames(aictable)<-c('original aic','box aic','gls with transformed aic')
+aictable
 ```
 
-As we can see after applying a Generalised Least Square with correlated error with boxcox transformation we have an rmse of 58, which is higher than the original model with every predictor and higher than the transformed only root mean square error. Also we see that we cannot reject the null hypothesis of residual being correlated since the lower bound of Phi which is the correlation variable does not include 0 which is what we would need to reject the null hypothesis. This suggests that GLS may not be the best model for this data since there is still correlation and the r-mse is higher than OLS
+As we can see after applying a Generalised Least Square with correlated error with boxcox transformation we have an rmse of 52, which is slightly higher than the original and only transformed linear regression. Also we see that we cannot reject the null hypothesis of residual being correlated since the lower bound of Phi which is the correlation variable does not include 0 which is what we would need to reject the null hypothesis. This suggests that GLS may not be the best model for this data since there is still correlation and the r-mse is higher than OLS
 
-Therefore, it may be a good idea to stick with OLS for the sake of fitting a parametric model in this dataset. We noticed that in the GLS model there were two insignificant predictors which were wind direction as a factor and 
+Therefore, it may be a good idea to stick with OLS specifically the transformed regression for the sake of fitting a parametric model in this dataset. 
 
 ```{r}
 
