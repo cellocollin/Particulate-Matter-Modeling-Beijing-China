@@ -389,23 +389,28 @@ As we can see after applying a Generalised Least Square with correlated error wi
 
 Therefore, it may be a good idea to stick with OLS specifically the transformed regression for the sake of fitting a parametric model in this dataset. 
 
-```{r echo = FALSE }
-box=boxcox(lm_all);box$x[which.max(box$y)]
-#summary(lm_all)
+```{r include = FALSE }
 lm33=lm(Avg_Day_PM2.5~.-(Year+Month+Day+Max_Day_CBWD) , data = trainingdate)
 bc=boxcox(lm33)
 lambda=bc$x[which.max(bc$y)]
-lmboxfinalmodel <- lm((Avg_Day_PM2.5^lambda-1)/lambda ~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Month) , data = trainingdate)
-bptest(lmboxfinalmodel)
-shapiro.test(residuals(lmboxfinalmodel))
-extractAIC(lmboxfinalmodel)
+```
+```{r echo = FALSE }
 
-finalmodelpredict <- predict(lmboxfinalmodel , nonatest)
+#summary(lm_all)
+
+lmboxfinalmodel <- lm((Avg_Day_PM2.5^lambda-1)/lambda ~Avg_Day_DEWP+Avg_Day_TEMP+Avg_Day_PRES+Max_Day_LWS+Max_Day_LS+Max_Day_LR+factor(Month) , data = trainingdate)
+finalmodelpredict<-predict(lmboxfinalmodel,nonatest);
+diagnostic<-data.frame(rmse(finalmodelpredict,nonatest [,2]),bptest(lmboxfinalmodel)[4],
+shapiro.test(residuals(lmboxfinalmodel))[2] ,extractAIC(lmboxfinalmodel)[2]
+)
+colnames(diagnostic)<-c('rmse', 'bptest p' , 'shapiro p ' , 'aic')
+diagnostic
+#finalmodelpredict <- predict(lmboxfinalmodel , nonatest)
 for (k in 1:355)
 {
   finalmodelpredict[k] <- invBoxCox(finalmodelpredict[k],lambda)
 }
-rmse(finalmodelpredict,nonatest [ , 2 ] )
+
 ```
 
 We see that this model has normal residual as well as heteroscedasticity. However there is autocorrelation so a non parametric method such as regression splines or kernel estimation may be a better way to model particulates in Beijing though our model is greatly improved from the previous. 
@@ -413,3 +418,20 @@ We see that this model has normal residual as well as heteroscedasticity. Howeve
 **Section 4: Conclusions**
 
 Through our analysis we have learned many things, such as:
+Through analyzing the data we were able to find out several things about this dataset.  We were able to find correlation between several of the meteorological variables used, with dew point, temperature, and pressure all being somewhat highly correlated.  This is hardly a surprising phenomenon to anyone who has studied physics or chemistry, and this fact, while complicated from a data analysis point of view, lends credibility to the accuracy of the model.
+
+Likewise, we noted that the original dataset: pollution, and the dataset output from the useful code provided by the class instructor: pollution_daily, both have multiple variables through which they represent time, including the month, year, and day variables.  Having an additional variable like Date_D then would obviously cause more issues in regards to correlation.
+
+Through diagnostic testing, we were able to tell that the initial full model described by the project instructions did not meet the error assumptions of homoscedasticity, normality, and had autocorrelation.  Furthermore, in our train dataset we found many unusual observations, with most being high leverage points, and none being high influence points.  Four outliers were found within the train dataset and two were found within the test dataset, however, we decided it would not make sense to remove data from the final dataset to test our model, so we did not in this case.
+
+In order to fix our error assumptions, we first performed a box cox transformation on the original full model.  We found that R squared increased by a gigantic 0.1 which meant our model explained the variation in particulates much better than the non transformed data.  Through this we met the model assumption of residuals being normal. There was still heteroscedasticity and errors correlation. So we decided to use Generalised Least Squares for this.
+
+Our model was worse using gls and from the phi interval we did not reject the hypothesis that there is autocorrelation, therefore we switched to back to a simple boxcox transformation. However we also saw in the gls model that  shows our model fits the dataset more precisely, and of course it also looks better under diagnostics.
+
+
+To sum up in bullet points:
+Original Predictors Show Significant Correlation
+Full Model Does Not Meet Error Assumptions/Has Unusual Observations
+Doing generalised least squares did not improve the model
+Final Model which is a boxcox transformation with factor day, month, year predicts PM2.5 Better Than Full Model
+

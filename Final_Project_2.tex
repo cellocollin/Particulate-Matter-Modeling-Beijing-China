@@ -72,6 +72,40 @@
 
 \textbf{Section 1: Introduction}
 
+In this project we are going to construct models to predict PM2.5 in
+Beijing, China. Beijing and lots of part of China is experiencing
+chronic air pollution, and the main pollutants are PM 2.5 {[}1{]}. PM
+2.5 refers to airborne particles with diameter less than 2.5 μm {[}1{]}.
+Studied has shown that breathing excessive PM 2.5 is harmful to lung,
+and is a cause to serious respiratory and cardiovascular diseases, and
+even the death {[}1{]}. Moreover, China's State Council has enacted the
+target to reduce PM 2.5 by 25 percent from 2012 to 2017 for Beijing, and
+the statistic approach of predicting PM 2.5 is not only helpful to
+determine the goal of decreasing PM 2.5, but also necessary to predict
+the harmful PM 2.5 level in Beijing, in order to protect people's health
+{[}1{]}.
+
+Data mainly comes from two sources, the US embassy in Beijing, located
+(116.47 E, 39.95 N), and hourly meteorological measurements at Beijing
+Capital International Airport (BCIA), obtained from weather.nocrew.org
+{[}1{]}. Though two places are 17 kilometers apart, they share nearly
+identical weather condition {[}1{]}. These data set includes PM2.5 (fine
+particulate matter), concentrations with a number of meteorological
+variables for the city of Beijing during the 1st January 2010 to the
+31st December 2014 {[}1{]}. The Airport's data is mainly used to
+calibrate with the embassy data {[}1{]}.
+
+To achieve the prediction goal, we will first conduct the EDA analysis,
+in this part we will summary the basic statistics on the time series of
+PM2.5 data, as well as the relevant impact factor or signal factors and
+their relationships with each other.
+
+After this, the we will construct prediction models, from multiple
+linear regression to generalized least squares and choose the model that
+can achieve the regression assumptions of constant variance as well as
+normal residual. Finally, we will summarize results and explain why our
+model was effective and what impact this has on response.
+
 \textbf{Section 2: Exploratory Data Analysis}
 
 \includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-3-1.pdf}
@@ -260,34 +294,63 @@ Therefore, it may be a good idea to stick with OLS specifically the
 transformed regression for the sake of fitting a parametric model in
 this dataset.
 
-\includegraphics{Final_Project_2_files/figure-latex/unnamed-chunk-16-1.pdf}
-
 \begin{verbatim}
-## [1] 0.1010101
+##        rmse   bptest p shapiro p        aic
+## BP 114.4869 0.01446565  0.2985939 -38.51955
 \end{verbatim}
 
-\begin{verbatim}
-## 
-##  studentized Breusch-Pagan test
-## 
-## data:  lmboxfinalmodel
-## BP = 35.434, df = 17, p-value = 0.005454
-\end{verbatim}
-
-\begin{verbatim}
-## 
-##  Shapiro-Wilk normality test
-## 
-## data:  residuals(lmboxfinalmodel)
-## W = 0.99799, p-value = 0.0782
-\end{verbatim}
-
-\begin{verbatim}
-## [1]   18.0000 -535.4716
-\end{verbatim}
+We see that this model has normal residual as well as
+heteroscedasticity. However there is autocorrelation so a non parametric
+method such as regression splines or kernel estimation may be a better
+way to model particulates in Beijing though our model is greatly
+improved from the previous.
 
 \textbf{Section 4: Conclusions}
 
-Through our analysis we have learned many things, such as:
+Through our analysis we have learned many things, such as: Through
+analyzing the data we were able to find out several things about this
+dataset. We were able to find correlation between several of the
+meteorological variables used, with dew point, temperature, and pressure
+all being somewhat highly correlated. This is hardly a surprising
+phenomenon to anyone who has studied physics or chemistry, and this
+fact, while complicated from a data analysis point of view, lends
+credibility to the accuracy of the model.
+
+Likewise, we noted that the original dataset: pollution, and the dataset
+output from the useful code provided by the class instructor:
+pollution\_daily, both have multiple variables through which they
+represent time, including the month, year, and day variables. Having an
+additional variable like Date\_D then would obviously cause more issues
+in regards to correlation.
+
+Through diagnostic testing, we were able to tell that the initial full
+model described by the project instructions did not meet the error
+assumptions of homoscedasticity, normality, and had autocorrelation.
+Furthermore, in our train dataset we found many unusual observations,
+with most being high leverage points, and none being high influence
+points. Four outliers were found within the train dataset and two were
+found within the test dataset, however, we decided it would not make
+sense to remove data from the final dataset to test our model, so we did
+not in this case.
+
+In order to fix our error assumptions, we first performed a box cox
+transformation on the original full model. We found that R squared
+increased by a gigantic 0.1 which meant our model explained the
+variation in particulates much better than the non transformed data.
+Through this we met the model assumption of residuals being normal.
+There was still heteroscedasticity and errors correlation. So we decided
+to use Generalised Least Squares for this.
+
+Our model was worse using gls and from the phi interval we did not
+reject the hypothesis that there is autocorrelation, therefore we
+switched to back to a simple boxcox transformation. However we also saw
+in the gls model that shows our model fits the dataset more precisely,
+and of course it also looks better under diagnostics.
+
+To sum up in bullet points: Original Predictors Show Significant
+Correlation Full Model Does Not Meet Error Assumptions/Has Unusual
+Observations Doing generalised least squares did not improve the model
+Final Model which is a boxcox transformation with factor day, month,
+year predicts PM2.5 Better Than Full Model
 
 \end{document}
